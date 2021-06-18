@@ -10,7 +10,6 @@
 #include "./content.h" 
 #include "./assets.h" 
 
-#define RESET_DRAW_COLOR SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255)
 #define TICK_TIME (1000 / TICK_RATE)
 #define FPS_CAP_FRAME_TIME (1000 / FPS_CAP)
 
@@ -85,10 +84,6 @@ main(int argc, char **argv)
     if (!(renderer = rendererOpen(window)))
         goto error1;
     // gameLoop();
-    //
-    // SpriteTable test;
-    // setupSpriteTableFromAssetDefTab(&test, renderer, sprites, spriteCount);
-    // destroySpriteTable(&test);
 
     AssetTable test;
 
