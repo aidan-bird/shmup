@@ -86,9 +86,33 @@ main(int argc, char **argv)
         goto error1;
     // gameLoop();
     //
-    SpriteTable test;
-    setupSpriteTableFromAssetDefTab(&test, renderer, sprites, spriteCount);
-    destroySpriteTable(&test);
+    // SpriteTable test;
+    // setupSpriteTableFromAssetDefTab(&test, renderer, sprites, spriteCount);
+    // destroySpriteTable(&test);
+
+    AssetTable test;
+
+    test = (AssetTable) {
+        .init = initSpriteAssetTable,
+        .destroy = destroySpriteAssetTable,
+        .loader = (AssetLoader) {
+            .load = spriteLoaderFunc,
+            .sprite = {
+                .renderer = renderer,
+            },
+        }
+    };
+    loadAllFromAssetDefTab(&test, sprites, spriteCount);
+
+    SDL_Rect src = { .w = 32, .h = 32, .x = 0, .y = 0 };
+    SDL_Rect dest = { .w = 32, .h = 32, .x = WIDTH / 2, .y = HEIGHT / 2 };
+
+    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderCopy(renderer, test.assets[debugred], &src, &dest);
+    SDL_RenderPresent(renderer);
+
+    test.destroy(&test);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
