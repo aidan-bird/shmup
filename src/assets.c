@@ -4,10 +4,17 @@
 #include "./assets.h"
 #include "./sdlutils.h"
 
-typedef SDL_Texture* SpritePtr;
-
-typedef SpritePtr (SpriteLoader)(SpriteTable*, const AssetDef*);
-
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * tab
+ *
+ * EFFECTS
+ * loads the sprite that is defined in def.
+ * returns non-zero on error.
+ */
 int
 spriteLoader(SpriteTable *tab, const AssetDef *def)
 {
@@ -20,6 +27,16 @@ spriteLoader(SpriteTable *tab, const AssetDef *def)
     return 0;
 }
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * spriteTab
+ *
+ * EFFECTS
+ * deletes a loaded-in spriteTab 
+ */
 void
 destroySpriteTable(SpriteTable *spriteTab) 
 {
@@ -29,6 +46,17 @@ destroySpriteTable(SpriteTable *spriteTab)
     free(spriteTab->sprites);
 }
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * spriteTab, renderer
+ *
+ * EFFECTS
+ * initializes a spriteTab using a assetDefTable.
+ * returns non-zero on error.
+ */
 int
 setupSpriteTableFromAssetDefTab(SpriteTable *spriteTab, 
     SDL_Renderer *renderer, const AssetDefTab defTable, size_t n)
@@ -48,6 +76,17 @@ error1:;
     return 1;
 }
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * tab
+ *
+ * EFFECTS
+ * populates tab with n assets defined by defTable.
+ * returns non-zero on error.
+ */
 int
 loadAllFromAssetDefTab(AssetTable *tab, const AssetDef *defTable, 
     size_t n)
@@ -71,6 +110,16 @@ error1:;
     return 1;
 }
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * tab
+ *
+ * EFFECTS
+ * deletes tab
+ */
 void
 destroySpriteAssetTable(AssetTable *tab)
 {
@@ -87,12 +136,34 @@ destroySpriteAssetTable(AssetTable *tab)
         free(tab->assets);
 }
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * none
+ *
+ * EFFECTS
+ * returns a loaded-in sprite as a void*.
+ * returns NULL on error.
+ */
 const void*
 spriteLoaderFunc(AssetLoader *loader, const char *path)
 {
     return (const void *)loadImage(loader->sprite.renderer, path);
 }
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * tab
+ *
+ * EFFECTS
+ * mallocs storage for tab that will store n assets.
+ * returns non-zero on error.
+ */
 int
 initSpriteAssetTable(AssetTable *tab, size_t n)
 {

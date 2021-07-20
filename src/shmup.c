@@ -10,11 +10,28 @@
 #include "./content.h" 
 #include "./assets.h" 
 
+/* time in milliseconds that each tick lasts */
 #define TICK_TIME (1000 / TICK_RATE)
+
+/* time in milliseconds that each frame lasts */
 #define FPS_CAP_FRAME_TIME (1000 / FPS_CAP)
 
 static int isGameRunning;
+static AssetTable spriteTest;
+static SDL_Renderer *renderer;
+static SDL_Window *window;
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * isGameRunning
+ *
+ * EFFECTS
+ * called when the program receives SIGTERM or SIGINT.
+ * terminates the gameloop.
+ */
 void
 termhandler(int signum)
 {
@@ -22,6 +39,17 @@ termhandler(int signum)
     isGameRunning = 0;
 }
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * none
+ *
+ * EFFECTS
+ * calls update() every tick and draw() every frame when the game is running.
+ * the gameloop terminates if isGameRunning is zero.
+ */
 void
 gameLoop()
 {
@@ -61,6 +89,17 @@ gameLoop()
             }
         }
         frames++;
+
+        SDL_Rect src = { .w = 32, .h = 32, .x = 0, .y = 0 };
+        SDL_Rect dest = { .w = 32, .h = 32, .x = WIDTH / 2, .y = HEIGHT / 2 };
+        SDL_RenderClear(renderer);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderCopy(renderer, spriteTest.assets[debugred], &src, &dest);
+        SDL_RenderPresent(renderer);
+
+
+
+
         // drawGame(renderer);
 #if LIMIT_FPS == TRUE
         updateEndTime = SDL_GetTicks();
@@ -73,21 +112,16 @@ gameLoop()
 int
 main(int argc, char **argv)
 {
-    SDL_Renderer *renderer;
-    SDL_Window *window;
-
-    isGameRunning = 1;
+    /* setup signal handlers */
 	signal(SIGTERM, termhandler);
 	signal(SIGINT, termhandler);
+    /* setup sdl */
     if (!(window = windowOpen(TITLE, WIDTH, HEIGHT, SDL_FLAGS)))
         goto error0;
     if (!(renderer = rendererOpen(window)))
         goto error1;
-    // gameLoop();
-
-    AssetTable test;
-
-    test = (AssetTable) {
+    /* load assets */
+    spriteTest = (AssetTable) {
         .init = initSpriteAssetTable,
         .destroy = destroySpriteAssetTable,
         .loader = (AssetLoader) {
@@ -97,24 +131,19 @@ main(int argc, char **argv)
             },
         }
     };
-    loadAllFromAssetDefTab(&test, sprites, spriteCount);
-
-    SDL_Rect src = { .w = 32, .h = 32, .x = 0, .y = 0 };
-    SDL_Rect dest = { .w = 32, .h = 32, .x = WIDTH / 2, .y = HEIGHT / 2 };
-
-    SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderCopy(renderer, test.assets[debugred], &src, &dest);
-    SDL_RenderPresent(renderer);
-
-    test.destroy(&test);
-
+    if (loadAllFromAssetDefTab(&spriteTest, sprites, spriteCount))
+        goto error2;
+    /* start game */
+    isGameRunning = 1;
+    gameLoop();
+    /* cleanup */
+    spriteTest.destroy(&spriteTest);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
     return 0;
 error3:;
-    destroySpriteTable(&test);
+    destroySpriteTable(&spriteTest);
 error2:;
     SDL_DestroyRenderer(renderer);
 error1:;

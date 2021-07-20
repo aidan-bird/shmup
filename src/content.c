@@ -8,7 +8,18 @@ static const AssetDef spriteDefs[] = {
     },
 };
 
-
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * none
+ *
+ * EFFECTS
+ * validates tab.
+ * prints all invalid entries in tab.
+ * returns non-zero if tab is invalid.
+ */
 int
 validateAssetDefTab(const AssetDef *tab, size_t n)
 {
