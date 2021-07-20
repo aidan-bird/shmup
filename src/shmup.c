@@ -143,7 +143,8 @@ main(int argc, char **argv)
     SDL_Quit();
     return 0;
 error3:;
-    destroySpriteTable(&spriteTest);
+    spriteTest.destroy(&spriteTest);
+    // destroySpriteTable(&spriteTest);
 error2:;
     SDL_DestroyRenderer(renderer);
 error1:;

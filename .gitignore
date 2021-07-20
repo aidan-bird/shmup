@@ -1,4 +1,5 @@
-/.obj
-/.obj/*
-/shmup_debug
-/shmup_release
+.obj
+.obj/*
+shmup_debug
+shmup_release
+.gdb_history
