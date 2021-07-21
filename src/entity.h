@@ -38,9 +38,14 @@
 
 typedef struct EntityPool EntityPool;
 
-void updateEntityPool(EntityPool *pool);
 void drawEntityPool(SDL_Renderer *renderer, const EntityPool *pool);
 void updateActiveIndexMap(EntityPool *pool);
+
+void updateEntityPool(EntityPool *pool);
+void updateEntityPosition(EntityPool *pool);
+
+void despawnEntity(EntityPool *pool, unsigned short key);
+unsigned short spawnEntity(EntityPool *pool);
 
 struct EntityPool
 {

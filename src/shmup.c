@@ -9,6 +9,8 @@
 #include "./config.h" 
 #include "./content.h" 
 #include "./assets.h" 
+#include "./entity.h" 
+
 
 /* time in milliseconds that each tick lasts */
 #define TICK_TIME (1000 / (TICK_RATE))
@@ -17,9 +19,32 @@
 #define FPS_CAP_FRAME_TIME (1000 / (FPS_CAP))
 
 static int isGameRunning;
+static int isSpriteTestLoaded;
 static AssetTable spriteTest;
 static SDL_Renderer *renderer;
 static SDL_Window *window;
+
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * none
+ *
+ * EFFECTS
+ * returns the debug asset table.
+ * returns null on error.
+ */
+const AssetTable*
+getDebugAssetTable()
+{
+    if (isSpriteTestLoaded) {
+        return &spriteTest;
+    } else {
+        puts("debug sprite table is not loaded!");
+        return NULL;
+    }
+}
 
 /*
  * REQUIRES
@@ -95,12 +120,14 @@ gameLoop()
         SDL_RenderClear(renderer);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderCopy(renderer, spriteTest.assets[debugred], &src, &dest);
-        SDL_RenderPresent(renderer);
 
 
+        /* XXX debug. test entity pool */
+        drawEntityPool(renderer, &playerBullets);
 
 
         // drawGame(renderer);
+        SDL_RenderPresent(renderer);
 #if LIMIT_FPS == TRUE
         updateEndTime = SDL_GetTicks();
         if (updateEndTime - updateStartTime < FPS_CAP_FRAME_TIME)
@@ -133,6 +160,18 @@ main(int argc, char **argv)
     };
     if (loadAllFromAssetDefTab(&spriteTest, sprites, spriteCount))
         goto error2;
+    isSpriteTestLoaded = 1;
+
+
+    /* XXX debug. test entity pool */
+    unsigned short key;
+    key = spawnEntity(&playerBullets);
+    playerBullets.x[key] = WIDTH / 2;
+    playerBullets.y[key] = 55;
+    playerBullets.aabbWidth[key] = 32;
+    playerBullets.aabbHeight[key] = 32;
+    updateActiveIndexMap(&playerBullets);
+
     /* start game */
     isGameRunning = 1;
     gameLoop();
