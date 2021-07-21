@@ -13,4 +13,5 @@
 #define TITLE "Bullet Hell Game"
 #define SHOW_HIT_BOXES TRUE
 #define SHOW_FPS TRUE /* print fps to stdout */
+#define POOL_SIZE 256
 #endif
