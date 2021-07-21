@@ -11,10 +11,10 @@
 #include "./assets.h" 
 
 /* time in milliseconds that each tick lasts */
-#define TICK_TIME (1000 / TICK_RATE)
+#define TICK_TIME (1000 / (TICK_RATE))
 
 /* time in milliseconds that each frame lasts */
-#define FPS_CAP_FRAME_TIME (1000 / FPS_CAP)
+#define FPS_CAP_FRAME_TIME (1000 / (FPS_CAP))
 
 static int isGameRunning;
 static AssetTable spriteTest;

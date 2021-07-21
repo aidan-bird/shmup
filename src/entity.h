@@ -7,7 +7,7 @@ typedef struct Entity Entity;
 
 struct Entity
 {
-    ushort ;
+    ushort;
 };
 
 #endif
