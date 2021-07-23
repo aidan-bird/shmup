@@ -5,14 +5,15 @@
 
 #include "assets.h"
 
+typedef enum SpriteAssetKeys SpriteAssetKeys;
+
 enum SpriteAssetKeys
 {
     debugred,
 };
 
-int validateAssetDefTab(const AssetDef *tab, size_t n);
+const extern AssetDefTab spritesheet;
 
-const extern AssetDefTab sprites;
-const extern size_t spriteCount;
+// int validateAssetDefTab(const AssetDef *tab, size_t n);
 
 #endif
