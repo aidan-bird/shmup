@@ -11,6 +11,7 @@
 #include "./assets.h" 
 #include "./entity.h" 
 #include "./utils.h" 
+#include "./collision.h" 
 
 typedef void (*GameUpdateFunc)();
 typedef void (*GameDrawFunc)();
@@ -49,6 +50,9 @@ static SpriteAssetKeys playerSprite;
 static GameUpdateFunc update;
 static GameDrawFunc draw;
 
+/* XXX test collision detection */
+static CircleCollider *testcc;
+
 /*
  * REQUIRES
  * events are handled before calling this.
@@ -81,6 +85,15 @@ updateGame()
         * playerVelocityCorrection;
     playerX += playerVelocityX;
     playerY += playerVelocityY;
+
+    /* update entity pools */
+    updateEntityPool(&playerBullets);
+
+    /* XXX test collision detection */
+    short k;
+    k = testCircCollider(playerX, playerY, 16, testcc);
+    if (k >= 0)
+        despawnEntity(&playerBullets, k);
 }
 
 /*
@@ -310,6 +323,10 @@ main(int argc, char **argv)
     playerBullets.aabbWidth[key] = 32;
     playerBullets.aabbHeight[key] = 32;
     updateActiveIndexMap(&playerBullets);
+
+
+    /* XXX test collision detection */
+    testcc = newCircCollider(&playerBullets);
 
     /* start game */
     isGameRunning = 1;

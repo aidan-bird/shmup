@@ -8,6 +8,8 @@
 
 #define ROOT1_2F ((float)0.707106781186547)
 
+#define SQUARE(X) ((X) * (X))
+
 typedef unsigned short ushort;
 
 #endif
