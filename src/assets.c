@@ -110,11 +110,11 @@ spriteLoaderFunc(AssetLoader *loader, const char *path)
  * renderer
  *
  * EFFECTS
- * draws the first column first row of a sprite sheet centered at (x,y). 
+ * draws a sprite from a sprite sheet and center it at (x,y). 
  */
 void
 drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey, 
-    float x, float y)
+    float x, float y, unsigned char row, unsigned char col)
 {
     float offsetX;
     float offsetY;
@@ -128,8 +128,8 @@ drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey,
     offsetX = spriteWidth / 2;
     offsetY =  spriteHeight / 2;
     SDL_Rect src = {
-        .x = 0, 
-        .y = 0,
+        .x = spriteWidth * row,
+        .y = spriteHeight * col,
         .w = spriteWidth,
         .h = spriteHeight,
     };

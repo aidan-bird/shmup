@@ -16,12 +16,11 @@ typedef union AssetMetadata AssetMetadata;
 int initSpriteAssetTable(AssetTable *tab, size_t n);
 void destroySpriteAssetTable(AssetTable *tab);
 
-
 int loadAllFromAssetDefTab(AssetTable *tab, const AssetDefTab *defTab);
 
 void
 drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey, 
-    float x, float y);
+    float x, float y, unsigned char row, unsigned char col);
 
 const void* spriteLoaderFunc(AssetLoader *loader, const char *path);
 

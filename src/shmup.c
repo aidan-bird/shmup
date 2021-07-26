@@ -125,7 +125,7 @@ updateGame()
 void
 drawGame()
 {
-    drawSprite(renderer, &spriteTest, debugred, playerX, playerY);
+    drawSprite(renderer, &spriteTest, debugred, playerX, playerY, 0, 0);
 }
 
 /*
