@@ -12,6 +12,7 @@
 #include "./entity.h" 
 #include "./utils.h" 
 #include "./collision.h" 
+#include "./stage.h" 
 
 typedef void (*GameUpdateFunc)();
 typedef void (*GameDrawFunc)();
@@ -50,8 +51,26 @@ static SpriteAssetKeys playerSprite;
 static GameUpdateFunc update;
 static GameDrawFunc draw;
 
-/* XXX test collision detection */
-static CircleCollider *testcc;
+/* XXX test stage system */
+static Stage testStg;
+static StageDef testStgDef = {
+    .name = "test stage",
+    .eventDefs = (StageEventDef*[]){
+        (StageEventDef[]) {
+            {
+                .updateFunc = stageDelayFunc,
+                .initState = (StageEventData[]) {
+                    {
+                        .delay = {
+                            .ticks = 60 * 3,
+                        },
+                    },
+                },
+            }
+        },
+        NULL,
+    },
+};
 
 /*
  * REQUIRES
@@ -65,10 +84,12 @@ static CircleCollider *testcc;
 void
 updateGame()
 {
-    playerVelocityXScale = 0;
-    playerVelocityYScale = 0;
+    /* XXX test stage system */
+    int k = updateStage(&testStg);
 
     /* update player */
+    playerVelocityXScale = 0;
+    playerVelocityYScale = 0;
     if (isUp)
         playerVelocityYScale--;
     if (isDown)
@@ -88,12 +109,6 @@ updateGame()
 
     /* update entity pools */
     updateEntityPool(&playerBullets);
-
-    /* XXX test collision detection */
-    short k;
-    k = testCircCollider(playerX, playerY, 16, testcc);
-    if (k >= 0)
-        despawnEntity(&playerBullets, k);
 }
 
 /*
@@ -111,9 +126,6 @@ void
 drawGame()
 {
     drawSprite(renderer, &spriteTest, debugred, playerX, playerY);
-
-    /* XXX debug. test entity pool */
-    drawEntityPool(renderer, &playerBullets);
 }
 
 /*
@@ -315,18 +327,9 @@ main(int argc, char **argv)
     isSpriteTestLoaded = 1;
 
 
-    /* XXX debug. test entity pool */
-    unsigned short key;
-    key = spawnEntity(&playerBullets);
-    playerBullets.x[key] = WIDTH / 2;
-    playerBullets.y[key] = 55;
-    playerBullets.aabbWidth[key] = 32;
-    playerBullets.aabbHeight[key] = 32;
-    updateActiveIndexMap(&playerBullets);
+    /* XXX test stage system */
+    testStg = initStage(&testStgDef);
 
-
-    /* XXX test collision detection */
-    testcc = newCircCollider(&playerBullets);
 
     /* start game */
     isGameRunning = 1;
@@ -342,7 +345,6 @@ main(int argc, char **argv)
     return 0;
 error3:;
     spriteTest.destroy(&spriteTest);
-    // destroySpriteTable(&spriteTest);
 error2:;
     SDL_DestroyRenderer(renderer);
 error1:;

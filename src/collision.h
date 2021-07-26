@@ -21,14 +21,4 @@ void deleteCircCollider(CircleCollider *collider);
 short testCircCollider(float x, float y, float r, 
     const CircleCollider *collider);
 
-// typedef union CollisionDetectionResult CollisionDetectionResult;
-// union CollisionDetectionResult
-// {
-//     unsigned short key;
-//     struct Mult {
-//         size_t count;
-//         unsigned short *keys;
-//     } mult;
-// };
-
 #endif
