@@ -51,27 +51,6 @@ static SpriteAssetKeys playerSprite;
 static GameUpdateFunc update;
 static GameDrawFunc draw;
 
-/* XXX test stage system */
-static Stage testStg;
-static StageDef testStgDef = {
-    .name = "test stage",
-    .eventDefs = (StageEventDef*[]){
-        (StageEventDef[]) {
-            {
-                .updateFunc = stageDelayFunc,
-                .initState = (StageEventData[]) {
-                    {
-                        .delay = {
-                            .ticks = 60 * 3,
-                        },
-                    },
-                },
-            }
-        },
-        NULL,
-    },
-};
-
 /*
  * REQUIRES
  * events are handled before calling this.
@@ -84,9 +63,6 @@ static StageDef testStgDef = {
 void
 updateGame()
 {
-    /* XXX test stage system */
-    int k = updateStage(&testStg);
-
     /* update player */
     playerVelocityXScale = 0;
     playerVelocityYScale = 0;
@@ -325,12 +301,6 @@ main(int argc, char **argv)
     if (loadAllFromAssetDefTab(&spriteTest, &spritesheet))
         goto error2;
     isSpriteTestLoaded = 1;
-
-
-    /* XXX test stage system */
-    testStg = initStage(&testStgDef);
-
-
     /* start game */
     isGameRunning = 1;
     update = updateGame;

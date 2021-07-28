@@ -16,6 +16,30 @@ EntityPool pickups = newDebugEntityPool(POOL_SIZE);
  * none
  *
  * MODIFIES
+ * none
+ *
+ * EFFECTS
+ * creates a new EntityPoolRef which is associated with pool.
+ */
+EntityPoolRef
+getEntityPoolRef(const EntityPool *pool)
+{
+    return (EntityPoolRef) {
+        .count = pool->count, 
+        .activeCount = &pool->activeCount,
+        .isActive = pool->isActive,
+        .activeIndexMap = pool->activeIndexMap,
+        .x = pool->x,
+        .y = pool->y,
+    };
+}
+
+
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
  * pool
  *
  * EFFECTS

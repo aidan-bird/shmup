@@ -6,6 +6,19 @@
 #include "./utils.h"
 
 /*
+ * TODO
+ * 
+ * AABB VS AABB
+ * circle vs AABB?
+ * point vs point?
+ * Simd-ify the collision detection algorithms?
+ *
+ * Make colliders that only test against one entity e.g., the player vs enemy 
+ * bullets. The motovaiton for doing this is that for circle vs circle
+ * collision detection, the (rp - rx)^2 only needs to be computed once.
+ */
+
+/*
  * REQUIRES
  * none
  *
@@ -21,19 +34,12 @@ CircleCollider *
 newCircCollider(const EntityPool *pool)
 {
     CircleCollider *ret;
-    size_t n;
 
-    n = pool->count;
-    ret = malloc(sizeof(CircleCollider) + sizeof(unsigned char) * n);
+    ret = malloc(sizeof(CircleCollider) + sizeof(unsigned char) * pool->count);
     if (!ret)
         return NULL;
-    ret->count = n;
-    ret->activeCount = &pool->activeCount;
-    ret->isActive = pool->isActive;
-    ret->activeIndexMap = pool->activeIndexMap;
-    ret->radius = (void *)ret + sizeof(unsigned char) * n;
-    ret->x = pool->x;
-    ret->y = pool->y;
+    ret->poolRef = getEntityPoolRef(pool);
+    ret->radius = (void *)ret + sizeof(CircleCollider);
     return ret;
 }
 
@@ -77,13 +83,21 @@ deleteCircCollider(CircleCollider *collider)
 short
 testCircCollider(float x, float y, float r, const CircleCollider *collider)
 {
-    for (int i = 0; i < *collider->activeCount; i++) {
+    float diffX;
+    float diffY;
+    float totalRadius;
+
+    for (int i = 0; i < *collider->poolRef.activeCount; i++) {
         /* (x2 - x1)^2 + (y2 - y1)^2 <= (r1 + r2)^2 ---> HIT */
-        if (SQUARE(x - collider->x[collider->activeIndexMap[i]]) + SQUARE(y - 
-            collider->y[collider->activeIndexMap[i]]) <= SQUARE(r + 
-            collider->radius[collider->activeIndexMap[i]])) {
+        diffX = SQUARE(x 
+            - collider->poolRef.x[collider->poolRef.activeIndexMap[i]]);
+        diffY = SQUARE(y 
+            - collider->poolRef.y[collider->poolRef.activeIndexMap[i]]);
+        totalRadius = SQUARE(r 
+            + collider->radius[collider->poolRef.activeIndexMap[i]]);
+        if (diffX + diffY <= totalRadius) {
             puts("circle collision detected!");
-            return collider->activeIndexMap[i];
+            return collider->poolRef.activeIndexMap[i];
         }
     }
     return -1;

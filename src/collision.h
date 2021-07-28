@@ -7,13 +7,8 @@ typedef struct CircleCollider CircleCollider;
 
 struct CircleCollider
 {
-    size_t count;
-    const size_t *activeCount;
-    const char *isActive;
-    const unsigned short *activeIndexMap;
+    EntityPoolRef poolRef;
     unsigned char *radius;
-    const float *x;
-    const float *y;
 };
 
 CircleCollider *newCircCollider(const EntityPool *pool);
