@@ -26,9 +26,9 @@
  * none
  *
  * EFFECTS
- * creates a new circle collider from a entity pool. 
- * the pool should have the same lifetime as the circle collider since it 
- * references data stored in the pool.
+ * creates a new circle collider from an entity pool. 
+ * the collider should not outlive the pool.
+ * returns NULL on error.
  */
 CircleCollider *
 newCircCollider(const EntityPool *pool)
@@ -83,21 +83,20 @@ deleteCircCollider(CircleCollider *collider)
 short
 testCircCollider(float x, float y, float r, const CircleCollider *collider)
 {
+    size_t j;
     float diffX;
     float diffY;
     float totalRadius;
 
     for (int i = 0; i < *collider->poolRef.activeCount; i++) {
         /* (x2 - x1)^2 + (y2 - y1)^2 <= (r1 + r2)^2 ---> HIT */
-        diffX = SQUARE(x 
-            - collider->poolRef.x[collider->poolRef.activeIndexMap[i]]);
-        diffY = SQUARE(y 
-            - collider->poolRef.y[collider->poolRef.activeIndexMap[i]]);
-        totalRadius = SQUARE(r 
-            + collider->radius[collider->poolRef.activeIndexMap[i]]);
+        j = collider->poolRef.activeIndexMap[i];
+        diffX = SQUARE(x - collider->poolRef.x[j]);
+        diffY = SQUARE(y - collider->poolRef.y[j]);
+        totalRadius = SQUARE(r + collider->radius[j]);
         if (diffX + diffY <= totalRadius) {
             puts("circle collision detected!");
-            return collider->poolRef.activeIndexMap[i];
+            return j;
         }
     }
     return -1;

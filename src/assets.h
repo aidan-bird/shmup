@@ -15,14 +15,13 @@ typedef union AssetMetadata AssetMetadata;
 
 int initSpriteAssetTable(AssetTable *tab, size_t n);
 void destroySpriteAssetTable(AssetTable *tab);
-
 int loadAllFromAssetDefTab(AssetTable *tab, const AssetDefTab *defTab);
-
 void
 drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey, 
     float x, float y, unsigned char row, unsigned char col);
-
-const void* spriteLoaderFunc(AssetLoader *loader, const char *path);
+const void *spriteLoaderFunc(AssetLoader *loader, const char *path);
+const void *animLoaderFunc(AssetLoader *loader, const char *path);
+void destroyAnimAssetTable(AssetTable *tab);
 
 struct AssetLoader
 {
@@ -32,6 +31,9 @@ struct AssetLoader
         struct AssetLoaderSprite {
             SDL_Renderer *renderer;
         } sprite;
+        struct AssetLoaderAnimation {
+            SDL_Renderer *renderer;
+        } anim;
     };
 };
 
@@ -54,6 +56,13 @@ union AssetMetadata {
         unsigned char rows;
         unsigned char cols;
     } sprite;
+    struct AssetDefAnimation {
+        unsigned short cellWidth;
+        unsigned short cellHeight;
+        unsigned char rows;
+        unsigned char cols;
+        const unsigned short **delays;
+    } anim;
 };
 
 /*

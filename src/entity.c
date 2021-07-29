@@ -2,7 +2,6 @@
 
 #include "./entity.h"
 #include "./config.h"
-#include "./shmup.h"
 #include "./assets.h"
 #include "./content.h"
 
@@ -157,15 +156,12 @@ updateEntityPool(EntityPool *pool)
  * draws all active entities
  */
 void
-drawEntityPool(SDL_Renderer *renderer, const EntityPool *pool)
+drawEntityPool(SDL_Renderer *renderer, const EntityPool *pool,
+    const AssetTable *assets)
 {
     SDL_Rect src;
     SDL_Rect dest;
-    const AssetTable *assets;
 
-    assets = getDebugAssetTable();
-    if (!assets)
-        return;
     for (int i = 0; i < pool->activeCount; i++) {
         src = (SDL_Rect) { 
             .x = 0,

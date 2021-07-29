@@ -12,8 +12,13 @@ enum SpriteAssetKeys
     debugred,
 };
 
+enum AnimAssetKeys
+{
+    debuganim,
+};
+
 const extern AssetDefTab spritesheet;
 
-// int validateAssetDefTab(const AssetDef *tab, size_t n);
+const extern AssetDefTab animSpriteSheet;
 
 #endif

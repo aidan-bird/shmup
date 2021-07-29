@@ -3,6 +3,8 @@
 
 #include <SDL.h>
 
+#include "./assets.h"
+
 #define POOL_FLAGS_AABB (1 << 0)
 #define POOL_FLAGS_CIRC (1 << 1)
 #define POOL_FLAGS_NO_COLLISION (1 << 2)
@@ -40,7 +42,8 @@
 typedef struct EntityPool EntityPool;
 typedef struct EntityPoolRef EntityPoolRef;
 
-void drawEntityPool(SDL_Renderer *renderer, const EntityPool *pool);
+void drawEntityPool(SDL_Renderer *renderer, const EntityPool *pool,
+    const AssetTable *assets);
 void updateActiveIndexMap(EntityPool *pool);
 void updateEntityPool(EntityPool *pool);
 void updateEntityPosition(EntityPool *pool);
@@ -61,11 +64,14 @@ struct EntityPool
     size_t count;
     unsigned poolFlags;
     char *isActive;
-    unsigned short *spriteID;
+
+    /* XXX deprecated, components and subsystems will be used instead */
     unsigned short *behaviourID;
+    unsigned short *spriteID;
     unsigned short *aabbWidth;
     unsigned short *aabbHeight;
     unsigned short *circRad;
+
     unsigned short *activeIndexMap;
     unsigned *ticksAlive;
     unsigned *flags;

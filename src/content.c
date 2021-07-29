@@ -28,3 +28,38 @@ const AssetDefTab spritesheet = {
     .assetDefs = spritesheetDefs,
 };
 
+/* XXX testing the animation system */
+static const AssetDef animSpriteSheetDefs[] = {
+    [debuganim] = {
+        .key = debuganim,
+        .path = "./assets/sprites/debuganim.png",
+        .meta = {
+            .anim = {
+                .cellWidth = 32,
+                .cellHeight = 32,
+                .rows = 1,
+                .cols = 4,
+                .delays = (const unsigned short*[]) {
+                    (unsigned short[]){
+                        2, 2, 2, 2
+                    },
+                },
+            },
+        },
+    },
+};
+
+/* XXX testing the animation system */
+static const int animSpritesheetKeys[] = {
+    debuganim,
+};
+
+/* XXX testing the animation system */
+const AssetDefTab animSpriteSheet = {
+    .label = "animation spritesheet",
+    .count = LEN(animSpritesheetKeys),
+    .keys = animSpritesheetKeys,
+    .assetDefs = animSpriteSheetDefs,
+};
+
+

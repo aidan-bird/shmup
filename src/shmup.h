@@ -3,6 +3,15 @@
 
 #include "./assets.h"
 
-const AssetTable* getDebugAssetTable();
+typedef enum AssetDefTabKey AssetDefTabKey;
+
+enum AssetDefTabKey
+{
+    debugSpriteSheet,
+}
+
+extern const AssetDefTabKey *listOfAssetDefTabKeys;
+
+extern AssetDefTab assetDefTables;
 
 #endif

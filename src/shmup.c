@@ -13,6 +13,7 @@
 #include "./utils.h" 
 #include "./collision.h" 
 #include "./stage.h" 
+#include "./animation.h" 
 
 typedef void (*GameUpdateFunc)();
 typedef void (*GameDrawFunc)();
@@ -24,7 +25,6 @@ typedef void (*GameDrawFunc)();
 #define FPS_CAP_FRAME_TIME (1000 / (FPS_CAP))
 
 static int isGameRunning;
-static int isSpriteTestLoaded;
 static AssetTable spriteTest;
 static SDL_Renderer *renderer;
 static SDL_Window *window;
@@ -50,6 +50,10 @@ static SpriteAssetKeys playerSprite;
 
 static GameUpdateFunc update;
 static GameDrawFunc draw;
+
+/* XXX testing the animation system */
+static AssetTable animTab;
+static Animator *testAnimator;
 
 /*
  * REQUIRES
@@ -85,6 +89,10 @@ updateGame()
 
     /* update entity pools */
     updateEntityPool(&playerBullets);
+
+
+    /* XXX testing animation system */
+    updateAnimator(testAnimator);
 }
 
 /*
@@ -102,28 +110,9 @@ void
 drawGame()
 {
     drawSprite(renderer, &spriteTest, debugred, playerX, playerY, 0, 0);
-}
 
-/*
- * REQUIRES
- * none
- *
- * MODIFIES
- * none
- *
- * EFFECTS
- * returns the debug asset table.
- * returns null on error.
- */
-const AssetTable*
-getDebugAssetTable()
-{
-    if (isSpriteTestLoaded) {
-        return &spriteTest;
-    } else {
-        puts("debug sprite table is not loaded!");
-        return NULL;
-    }
+    /* XXX testing the animation system */
+    drawAnimator(renderer, testAnimator);
 }
 
 /*
@@ -298,15 +287,48 @@ main(int argc, char **argv)
             },
         }
     };
+
+
+    /* XXX testing the animation system */
+    animTab = (AssetTable) {
+        .destroy = destroyAnimAssetTable,
+        .loader = (AssetLoader) {
+            .load = animLoaderFunc,
+            .sprite = {
+                .renderer = renderer,
+            },
+        }
+    };
+    /* XXX testing the animation system */
+    int d = loadAllFromAssetDefTab(&animTab, &animSpriteSheet);
+
+    /* XXX testing the animation system */
+    testAnimator = newAnimator(&playerBullets, &animTab);
+
+    /* XXX testing the animation system */
+    /* spawn a test bullet */
+    unsigned short key;
+    key = spawnEntity(&playerBullets);
+    playerBullets.x[key] = WIDTH / 2;
+    playerBullets.y[key] = 55;
+    /* setup animation for test entity */
+    setAnimation(testAnimator, key, debuganim, 0, 0);
+    updateActiveIndexMap(&playerBullets);
+    
+
     if (loadAllFromAssetDefTab(&spriteTest, &spritesheet))
         goto error2;
-    isSpriteTestLoaded = 1;
     /* start game */
     isGameRunning = 1;
     update = updateGame;
     draw = drawGame;
     playerSprite = debugred;
     gameLoop();
+
+    /* XXX testing the animation system */
+    animTab.destroy(&animTab);
+    deleteAnimator(testAnimator);
+
     /* cleanup */
     spriteTest.destroy(&spriteTest);
     SDL_DestroyRenderer(renderer);

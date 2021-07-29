@@ -102,6 +102,20 @@ spriteLoaderFunc(AssetLoader *loader, const char *path)
     return (const void *)loadImage(loader->sprite.renderer, path);
 }
 
+/* XXX */
+const void*
+animLoaderFunc(AssetLoader *loader, const char *path)
+{
+    return (const void *)loadImage(loader->sprite.renderer, path);
+}
+
+/* XXX */
+void
+destroyAnimAssetTable(AssetTable *tab)
+{
+    destroySpriteAssetTable(tab);
+}
+
 /*
  * REQUIRES
  * none
@@ -128,14 +142,14 @@ drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey,
     offsetX = spriteWidth / 2;
     offsetY =  spriteHeight / 2;
     SDL_Rect src = {
-        .x = spriteWidth * row,
-        .y = spriteHeight * col,
+        .x = spriteWidth * col,
+        .y = spriteHeight * row,
         .w = spriteWidth,
         .h = spriteHeight,
     };
     SDL_Rect dest = {
-        .x = (int)(x - spriteWidth / 2),
-        .y = (int)(y - spriteHeight / 2),
+        .x = (int)(x - spriteWidth),
+        .y = (int)(y - spriteHeight),
         .w = spriteWidth,
         .h = spriteHeight,
     };
