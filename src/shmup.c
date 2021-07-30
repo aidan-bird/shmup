@@ -14,6 +14,7 @@
 #include "./collision.h" 
 #include "./stage.h" 
 #include "./animation.h" 
+#include "./behaviour.h"
 
 typedef void (*GameUpdateFunc)();
 typedef void (*GameDrawFunc)();
@@ -277,6 +278,26 @@ main(int argc, char **argv)
     };
     if (loadAllFromAssetDefTab(&spriteTest, &spritesheet))
         goto error2;
+    /* initialize entity pools */
+    if (initEntityPool(&playerBullets) || initEntityPool(&enemyBullets) || 
+        initEntityPool(&enemies) || initEntityPool(&pickups))
+        goto error3;
+
+
+    /* XXX testing the behaviour system */
+    EntityBehaviourManager *beh;
+    beh = newEntityBehaviourManager(&playerBullets);
+
+
+    /* XXX spawn a bullet for testing the event system */
+    unsigned short key;
+    key = spawnEntity(&playerBullets);
+    playerBullets.x[key] = WIDTH / 2;
+    playerBullets.y[key] = 55;
+    updateActiveIndexMap(&playerBullets);
+
+
+
     /* start game */
     isGameRunning = 1;
     update = updateGame;
@@ -284,6 +305,11 @@ main(int argc, char **argv)
     playerSprite = debugred;
     gameLoop();
     /* cleanup */
+    invalidateEntityPool(&playerBullets);
+    invalidateEntityPool(&enemyBullets);
+    invalidateEntityPool(&enemies);
+    invalidateEntityPool(&pickups);
+
     spriteTest.destroy(&spriteTest);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

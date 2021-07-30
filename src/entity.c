@@ -24,7 +24,7 @@ EntityPool pickups = newDebugEntityPool(POOL_SIZE);
 int
 initEntityPool(EntityPool *pool)
 {
-    if (newEventManager(&pool->onSpawnEntityEvent, pool, "On Spawn Entity"))
+    if (!(pool->onSpawnEntityEvent = newEventManager(pool, "OnSpawnEntity")))
         return -1;
     return 0;
 }

@@ -19,10 +19,13 @@ struct EventManager
 {
     void *parent; 
     Array *subscribers;
+    const char *label;
 };
 
-int newEventManager(EventManager *out, const void *parent, const char *label);
-void raiseEvent(const EventManager mgr, const void *args);
-void deleteEventManager(EventManager mgr);
+EventManager *newEventManager(void *parent, const char *label);
+void raiseEvent(const EventManager *mgr, const void *args);
+void deleteEventManager(EventManager *mgr);
+int subscribeToEventManager(EventManager *mgr, void *subscriberObject, 
+    OnEventFunc eventFunc, const char *label);
 
 #endif

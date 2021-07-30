@@ -47,8 +47,7 @@ struct EntityPool
     unsigned *flags;
     float *x;
     float *y;
-    EventManager onSpawnEntityEvent;
-    /* on spawn entity event system */
+    EventManager *onSpawnEntityEvent;
 };
 
 /* 
@@ -63,8 +62,8 @@ struct EntityPoolRef
     const size_t *activeCount;
     const char *isActive;
     const unsigned short *activeIndexMap;
-    const float *x;
-    const float *y;
+    float *x;
+    float *y;
 };
 
 EntityPoolRef getEntityPoolRef(const EntityPool *pool);

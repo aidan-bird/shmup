@@ -1,16 +1,28 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "./event.h"
 
+/*
+ * REQUIRES
+ * all pointer arguments are valid 
+ *
+ * MODIFIES
+ * none
+ *
+ * EFFECTS
+ * Returns a new EventManager.
+ * Returns null on error.
+ */
 EventManager *
-newEventManager(const void *parent, const char *label)
+newEventManager(void *parent, const char *label)
 {
     EventManager *ret;
 
     ret = malloc(sizeof(parent));
     if (!ret)
         goto error1;
-    ret->subscribers = newArray(-1, -1, sizeof(Subscriber))
+    ret->subscribers = newArray(-1, -1, sizeof(Subscriber));
     if (!ret->subscribers)
         goto error2;
     ret->parent = parent;
@@ -22,34 +34,19 @@ error1:;
     return NULL;
 }
 
-// TODO make this return a malloc'ed pointer to EventManager, 
-// update the rest of the functions
-// int
-// newEventManager(EventManager *out, const void *parent, const char *label)
-// {
-//     EventManager ret;
-// 
-//     ret.parent = parent;
-//     ret.subscribers = newArray(-1, -1, sizeof(Subscriber));
-//     ret.label = label;
-//     if (!ret.subscribers)
-//         return -1;
-//     *out = ret;
-//     return 0;
-// }
-
 void
-raiseEvent(const EventManager mgr, const void *args)
+raiseEvent(const EventManager *mgr, const void *args)
 {
     Subscriber *sub;
 
-    if (mgr.label)
-        printf("EVENT RAISED: %s\n", mgr.);
+    if (mgr->label)
+        printf("EVENT RAISED: %s\n", mgr->label);
     else
         puts("ANONYMOUS EVENT RAISED");
-    for (int i = 0; i < mgr.subscribers->count; i++) {
-        sub = (Subscriber *)getElementArray(mgr.subscribers, i);
-        sub->eventFunc(mgr.parent, sub->subscriber, args);
+    for (int i = 0; i < mgr->subscribers->count; i++) {
+        sub = (Subscriber *)getElementArray(mgr->subscribers, i);
+        printf("Notifying: %s\n", sub->label == NULL ? "ANONYMOUS" : sub->label);
+        sub->eventFunc(mgr->parent, sub->subscriber, args);
     }
 }
 
@@ -64,23 +61,36 @@ raiseEvent(const EventManager mgr, const void *args)
  * deletes/invalidates mgr 
  */
 void
-deleteEventManager(EventManager mgr)
+deleteEventManager(EventManager *mgr)
 {
-    deleteArray(mgr.subscribers);
+    printf("DELETING %s EventManager\n", mgr->label == NULL ? "ANONYMOUS" : 
+        mgr->label);
+    deleteArray(mgr->subscribers);
+    free(mgr);
 }
 
 /*
  * REQUIRES
+ * all pointer parameters are valid
  *
  * MODIFIES
  * mgr
  *
  * EFFECTS
- *
+ * Subscribes to an Event Manager.
+ * returns non-zero on error.
  */
-void
-subscribeToEventManager(EventManager mgr, const void *subscriber)
+int
+subscribeToEventManager(EventManager *mgr, void *subscriberObject, 
+    OnEventFunc eventFunc, const char *label)
 {
+    Subscriber sub;
 
+    sub = (Subscriber) {
+        .subscriber = subscriberObject,
+        .eventFunc = eventFunc,
+        .label = label,
+    };
+    return tryPushArray(&mgr->subscribers, &sub) == NULL;
 }
 

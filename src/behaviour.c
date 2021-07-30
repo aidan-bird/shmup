@@ -31,8 +31,8 @@ onSpawnEvent_EntityBehaviourManager(EntityPool *caller, void *subscriber,
 
     mgr = subscriber;
     entityKey = *(unsigned short *)args;
-    mgr->ticksAlive[entityKey] = 0
-    mgr->flags[entityKey] = 0
+    mgr->ticksAlive[entityKey] = 0;
+    mgr->flags[entityKey] = 0;
 }
 
 /*
@@ -58,17 +58,22 @@ newEntityBehaviourManager(EntityPool *pool)
         + sizeof(unsigned);
     ret = malloc(sizeof(EntityBehaviourManager) + n * vectorSize);
     if (!ret)
-        return NULL;
+        goto error1;
     ret->poolRef = getEntityPoolRef(pool);
     ret->behaviourKey = (void *)ret + sizeof(EntityBehaviourManager);
     ret->ticksAlive = (void *)ret->behaviourKey + n * sizeof(unsigned char);
     ret->flags = (void *)ret->ticksAlive + n * sizeof(unsigned short);
-    /* 
-     * TODO
-     * add initializer func to pool onSpawnEvent list.
-     * this func will reset ticksAlive and flags to 0
-     */
+    if (subscribeToEventManager(pool->onSpawnEntityEvent, ret,
+        onSpawnEvent_EntityBehaviourManager,
+        "onSpawnEvent_EntityBehaviourManager"))
+        goto error2;
     return ret;
+error3:;
+
+error2:;
+    free(ret);
+error1:;
+    return NULL;
 }
 
 /*
