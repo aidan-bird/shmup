@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "./behaviour.h"
 #include "./entity.h"
 

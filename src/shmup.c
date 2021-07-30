@@ -51,6 +51,14 @@ static SpriteAssetKeys playerSprite;
 static GameUpdateFunc update;
 static GameDrawFunc draw;
 
+
+/* XXX testing the behaviour system */
+static EntityBehaviourManager *testBeh;
+
+/* XXX testing the animation system */
+static AssetTable animTab;
+static Animator *testAnimator;
+
 /*
  * REQUIRES
  * events are handled before calling this.
@@ -85,6 +93,12 @@ updateGame()
 
     /* update entity pools */
     updateEntityPool(&playerBullets);
+
+    /* XXX test behaviour system */
+    updateEntityBehaviourManager(testBeh);
+
+    /* XXX test animation system */
+    updateAnimator(testAnimator);
 }
 
 /*
@@ -102,6 +116,7 @@ void
 drawGame()
 {
     drawSprite(renderer, &spriteTest, debugred, playerX, playerY, 0, 0);
+    drawAnimator(renderer, testAnimator);
 }
 
 /*
@@ -284,19 +299,33 @@ main(int argc, char **argv)
         goto error3;
 
 
-    /* XXX testing the behaviour system */
-    EntityBehaviourManager *beh;
-    beh = newEntityBehaviourManager(&playerBullets);
+    /* XXX testing the animation system */
+    animTab = (AssetTable) {
+        .destroy = destroyAnimAssetTable,
+        .loader = (AssetLoader) {
+            .load = animLoaderFunc,
+            .sprite = {
+                .renderer = renderer,
+            },
+        }
+    };
+    loadAllFromAssetDefTab(&animTab, &animSpriteSheet);
+    testAnimator = newAnimator(&playerBullets, &animTab);
 
+    /* XXX testing the behaviour system */
+    testBeh = newEntityBehaviourManager(&playerBullets);
 
     /* XXX spawn a bullet for testing the event system */
     unsigned short key;
     key = spawnEntity(&playerBullets);
     playerBullets.x[key] = WIDTH / 2;
     playerBullets.y[key] = 55;
+
+    setAnimation(testAnimator, key, debuganim, 0, 0);
+
+    /* XXX testing the behaviour system */
+    testBeh->behaviourKey[key] = debugbot;
     updateActiveIndexMap(&playerBullets);
-
-
 
     /* start game */
     isGameRunning = 1;
@@ -309,6 +338,10 @@ main(int argc, char **argv)
     invalidateEntityPool(&enemyBullets);
     invalidateEntityPool(&enemies);
     invalidateEntityPool(&pickups);
+
+    animTab.destroy(&animTab);
+    deleteAnimator(testAnimator);
+    deleteEntityBehaviourManager(testBeh);
 
     spriteTest.destroy(&spriteTest);
     SDL_DestroyRenderer(renderer);
