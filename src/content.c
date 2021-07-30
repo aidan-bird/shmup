@@ -47,11 +47,29 @@ static const AssetDef animSpriteSheetDefs[] = {
             },
         },
     },
+    [debuganim2] = {
+        .key = debuganim2,
+        .path = "./assets/sprites/debuganim2.png",
+        .meta = {
+            .anim = {
+                .cellWidth = 32,
+                .cellHeight = 32,
+                .rows = 1,
+                .cols = 4,
+                .delays = (const unsigned short*[]) {
+                    (unsigned short[]){
+                        4, 4, 4, 4
+                    },
+                },
+            },
+        },
+    },
 };
 
 /* XXX testing the animation system */
 static const int animSpritesheetKeys[] = {
     debuganim,
+    debuganim2,
 };
 
 /* XXX testing the animation system */

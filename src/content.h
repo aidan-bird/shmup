@@ -15,6 +15,7 @@ enum SpriteAssetKeys
 enum AnimAssetKeys
 {
     debuganim,
+    debuganim2,
 };
 
 const extern AssetDefTab spritesheet;

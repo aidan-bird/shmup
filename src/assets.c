@@ -130,8 +130,6 @@ void
 drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey, 
     float x, float y, unsigned char row, unsigned char col)
 {
-    float offsetX;
-    float offsetY;
     int spriteWidth;
     int spriteHeight;
 
@@ -139,8 +137,6 @@ drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey,
         .cellWidth;
     spriteHeight = spriteTab->assetDefTable->assetDefs[assetKey].meta.sprite
         .cellHeight;
-    offsetX = spriteWidth / 2;
-    offsetY =  spriteHeight / 2;
     SDL_Rect src = {
         .x = spriteWidth * col,
         .y = spriteHeight * row,
@@ -148,8 +144,8 @@ drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey,
         .h = spriteHeight,
     };
     SDL_Rect dest = {
-        .x = (int)(x - spriteWidth),
-        .y = (int)(y - spriteHeight),
+        .x = (int)(x - spriteWidth / 2),
+        .y = (int)(y - spriteHeight / 2),
         .w = spriteWidth,
         .h = spriteHeight,
     };

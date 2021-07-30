@@ -42,7 +42,6 @@ static float playerX;
 static float playerY;
 static float playerVelocityX;
 static float playerVelocityY;
-static float playerRot;
 static char playerVelocityXScale;
 static char playerVelocityYScale;
 static float playerVelocityCorrection;
@@ -50,10 +49,6 @@ static SpriteAssetKeys playerSprite;
 
 static GameUpdateFunc update;
 static GameDrawFunc draw;
-
-/* XXX testing the animation system */
-static AssetTable animTab;
-static Animator *testAnimator;
 
 /*
  * REQUIRES
@@ -89,10 +84,6 @@ updateGame()
 
     /* update entity pools */
     updateEntityPool(&playerBullets);
-
-
-    /* XXX testing animation system */
-    updateAnimator(testAnimator);
 }
 
 /*
@@ -110,9 +101,6 @@ void
 drawGame()
 {
     drawSprite(renderer, &spriteTest, debugred, playerX, playerY, 0, 0);
-
-    /* XXX testing the animation system */
-    drawAnimator(renderer, testAnimator);
 }
 
 /*
@@ -287,35 +275,6 @@ main(int argc, char **argv)
             },
         }
     };
-
-
-    /* XXX testing the animation system */
-    animTab = (AssetTable) {
-        .destroy = destroyAnimAssetTable,
-        .loader = (AssetLoader) {
-            .load = animLoaderFunc,
-            .sprite = {
-                .renderer = renderer,
-            },
-        }
-    };
-    /* XXX testing the animation system */
-    int d = loadAllFromAssetDefTab(&animTab, &animSpriteSheet);
-
-    /* XXX testing the animation system */
-    testAnimator = newAnimator(&playerBullets, &animTab);
-
-    /* XXX testing the animation system */
-    /* spawn a test bullet */
-    unsigned short key;
-    key = spawnEntity(&playerBullets);
-    playerBullets.x[key] = WIDTH / 2;
-    playerBullets.y[key] = 55;
-    /* setup animation for test entity */
-    setAnimation(testAnimator, key, debuganim, 0, 0);
-    updateActiveIndexMap(&playerBullets);
-    
-
     if (loadAllFromAssetDefTab(&spriteTest, &spritesheet))
         goto error2;
     /* start game */
@@ -324,11 +283,6 @@ main(int argc, char **argv)
     draw = drawGame;
     playerSprite = debugred;
     gameLoop();
-
-    /* XXX testing the animation system */
-    animTab.destroy(&animTab);
-    deleteAnimator(testAnimator);
-
     /* cleanup */
     spriteTest.destroy(&spriteTest);
     SDL_DestroyRenderer(renderer);

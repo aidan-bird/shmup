@@ -12,6 +12,32 @@ EntityPool pickups = newDebugEntityPool(POOL_SIZE);
 
 /*
  * REQUIRES
+ * pool is a valid pointer to a uninitialized pool
+ *
+ * MODIFIES
+ * pool
+ *
+ * EFFECTS
+ * initializes pool; this must be called before pool is used.
+ * returns non-zero on error;
+ */
+int
+initEntityPool(EntityPool *pool)
+{
+    if (newEventManager(&pool->onSpawnEntityEvent, pool, "On Spawn Entity"))
+        return -1;
+    return 0;
+}
+
+void
+invalidateEntityPool(EntityPool *pool)
+{
+    /* TODO associated subsystems could be freed here */
+    deleteEventManager(pool->onSpawnEntityEvent);
+}
+
+/*
+ * REQUIRES
  * none
  *
  * MODIFIES
@@ -32,7 +58,6 @@ getEntityPoolRef(const EntityPool *pool)
         .y = pool->y,
     };
 }
-
 
 /*
  * REQUIRES
@@ -88,6 +113,7 @@ spawnEntity(EntityPool *pool)
     } else {
         pool->next = 0;
     }
+    raiseEvent(pool->onSpawnEntityEvent, &ret);
     return ret;
 }
 
@@ -144,38 +170,3 @@ updateEntityPool(EntityPool *pool)
 
     /* update behavior */
 }
-
-/*
- * REQUIRES
- * pool.activeIndexMap was updated before calling this
- *
- * MODIFIES
- * renderer
- *
- * EFFECTS
- * draws all active entities
- */
-void
-drawEntityPool(SDL_Renderer *renderer, const EntityPool *pool,
-    const AssetTable *assets)
-{
-    SDL_Rect src;
-    SDL_Rect dest;
-
-    for (int i = 0; i < pool->activeCount; i++) {
-        src = (SDL_Rect) { 
-            .x = 0,
-            .y = 0,
-            .w = 32,
-            .h = 32,
-        };
-        dest = (SDL_Rect) {
-            .x = pool->x[pool->activeIndexMap[i]],
-            .y = pool->y[pool->activeIndexMap[i]],
-            .w = pool->aabbWidth[pool->activeIndexMap[i]],
-            .h = pool->aabbHeight[pool->activeIndexMap[i]],
-        };
-        SDL_RenderCopy(renderer, assets->assets[debugred], &src, &dest);
-    }
-}
-

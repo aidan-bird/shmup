@@ -83,7 +83,6 @@ void
 updateAnimator(Animator *animator)
 {
     size_t j;
-    size_t frame;
     const struct AssetDefAnimation *animDef;
 
     for (int i = 0; i < *animator->poolRef.activeCount; i++) {
