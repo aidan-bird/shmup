@@ -39,6 +39,7 @@ newCircCollider(const EntityPool *pool)
     if (!ret)
         return NULL;
     ret->poolRef = getEntityPoolRef(pool);
+    /* XXX void pointer arithmetic is not portable */
     ret->radius = (void *)ret + sizeof(CircleCollider);
     return ret;
 }

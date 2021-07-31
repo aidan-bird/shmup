@@ -17,18 +17,20 @@
     .flags = (unsigned[(SIZE)]){}, \
     .x = (float[(SIZE)]){}, \
     .y = (float[(SIZE)]){}, \
+    .onSpawnEntityEvent = NULL, \
 };
 
 typedef struct EntityPool EntityPool;
 typedef struct EntityPoolRef EntityPoolRef;
 
+
+int addOnSpawnEntityEventManager(EntityPool *pool);
 void updateActiveIndexMap(EntityPool *pool);
 void updateEntityPool(EntityPool *pool);
 void updateEntityPosition(EntityPool *pool);
 void despawnEntity(EntityPool *pool, unsigned short key);
-unsigned short spawnEntity(EntityPool *pool);
-int initEntityPool(EntityPool *pool);
 void invalidateEntityPool(EntityPool *pool);
+unsigned short spawnEntity(EntityPool *pool);
 
 /*
  * Represents a fixed-length pool of objects.

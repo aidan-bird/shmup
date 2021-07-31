@@ -62,6 +62,7 @@ newEntityBehaviourManager(EntityPool *pool)
     if (!ret)
         goto error1;
     ret->poolRef = getEntityPoolRef(pool);
+    /* XXX void pointer arithmetic is not portable */
     ret->behaviourKey = (void *)ret + sizeof(EntityBehaviourManager);
     ret->ticksAlive = (void *)ret->behaviourKey + n * sizeof(unsigned char);
     ret->flags = (void *)ret->ticksAlive + n * sizeof(unsigned short);

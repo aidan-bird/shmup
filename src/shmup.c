@@ -293,11 +293,8 @@ main(int argc, char **argv)
     };
     if (loadAllFromAssetDefTab(&spriteTest, &spritesheet))
         goto error2;
-    /* initialize entity pools */
-    if (initEntityPool(&playerBullets) || initEntityPool(&enemyBullets) || 
-        initEntityPool(&enemies) || initEntityPool(&pickups))
-        goto error3;
-
+    /* XXX testing the event system */
+    addOnSpawnEntityEventManager(&playerBullets);
 
     /* XXX testing the animation system */
     animTab = (AssetTable) {
@@ -334,11 +331,8 @@ main(int argc, char **argv)
     playerSprite = debugred;
     gameLoop();
     /* cleanup */
-    invalidateEntityPool(&playerBullets);
-    invalidateEntityPool(&enemyBullets);
-    invalidateEntityPool(&enemies);
-    invalidateEntityPool(&pickups);
 
+    /* XXX */
     animTab.destroy(&animTab);
     deleteAnimator(testAnimator);
     deleteEntityBehaviourManager(testBeh);

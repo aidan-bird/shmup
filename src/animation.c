@@ -5,7 +5,6 @@
 #include "./assets.h"
 #include "./animation.h"
 
-/* XXX */
 void
 setAnimation(Animator *animator, unsigned short entityKey,
     unsigned short animKey, unsigned char selector, unsigned char initialFrame)
@@ -46,6 +45,7 @@ newAnimator(const EntityPool *pool, const AssetTable *assetTab)
         return NULL;
     ret->assetTab = assetTab;
     ret->poolRef = getEntityPoolRef(pool);
+    /* XXX void pointer arithmetic is not portable */
     ret->animKeys = (void *)ret + sizeof(Animator);
     ret->frames = (void *)ret->animKeys + sizeof(unsigned char) * n;
     ret->selectors = (void *)ret->frames + sizeof(unsigned char) * n;

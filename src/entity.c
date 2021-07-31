@@ -12,28 +12,24 @@ EntityPool pickups = newDebugEntityPool(POOL_SIZE);
 
 /*
  * REQUIRES
- * pool is a valid pointer to a uninitialized pool
+ * pool is valid
  *
  * MODIFIES
  * pool
  *
  * EFFECTS
- * initializes pool; this must be called before pool is used.
- * returns non-zero on error;
+ * sets up a Event Manager for notifying subscribers when an entity is spawned.
+ * returns non-zero on error.
  */
 int
-initEntityPool(EntityPool *pool)
+addOnSpawnEntityEventManager(EntityPool *pool)
 {
-    if (!(pool->onSpawnEntityEvent = newEventManager(pool, "OnSpawnEntity")))
-        return -1;
+    if (!pool->onSpawnEntityEvent)  {
+        if (!(pool->onSpawnEntityEvent = newEventManager(pool, 
+            "OnSpawnEntity Event")))
+            return -1;
+    }
     return 0;
-}
-
-void
-invalidateEntityPool(EntityPool *pool)
-{
-    /* TODO associated subsystems could be freed here */
-    deleteEventManager(pool->onSpawnEntityEvent);
 }
 
 /*
@@ -113,7 +109,8 @@ spawnEntity(EntityPool *pool)
     } else {
         pool->next = 0;
     }
-    raiseEvent(pool->onSpawnEntityEvent, &ret);
+    if (pool->onSpawnEntityEvent)
+        raiseEvent(pool->onSpawnEntityEvent, &ret);
     return ret;
 }
 
@@ -169,4 +166,21 @@ updateEntityPool(EntityPool *pool)
     /* set events flags */
 
     /* update behavior */
+}
+
+/*
+ * REQUIRES
+ * pool is valid
+ *
+ * MODIFIES
+ * pool
+ *
+ * EFFECTS
+ * invalidates pool.
+ */
+void
+invalidateEntityPool(EntityPool *pool)
+{
+    /* TODO associated subsystems could be freed here */
+    deleteEventManager(pool->onSpawnEntityEvent);
 }
