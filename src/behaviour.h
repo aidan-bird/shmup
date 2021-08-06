@@ -27,7 +27,8 @@ void updateEntityBehaviourManager(EntityBehaviourManager *mgr);
 enum BehaviourKey
 {
     no_behaviour,
-    debugbot,
+    debugbotStart,
+    debugbotLoop,
 };
 
 #endif

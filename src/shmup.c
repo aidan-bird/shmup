@@ -321,7 +321,7 @@ main(int argc, char **argv)
     setAnimation(testAnimator, key, debuganim, 0, 0);
 
     /* XXX testing the behaviour system */
-    testBeh->behaviourKey[key] = debugbot;
+    testBeh->behaviourKey[key] = debugbotStart;
     updateActiveIndexMap(&playerBullets);
 
     /* start game */

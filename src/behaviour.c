@@ -2,15 +2,19 @@
 
 #include "./behaviour.h"
 #include "./entity.h"
+#include "./config.h"
 
 typedef void (*BehaviourUpdateFunc)(EntityBehaviourManager *mgr,
     unsigned short entityKey);
 
-static void debugbotBehaviour(EntityBehaviourManager *mgr,
+static void debugbotBehaviourStart(EntityBehaviourManager *mgr,
+    unsigned short entityKey);
+static void debugbotBehaviourLoop(EntityBehaviourManager *mgr,
     unsigned short entityKey);
 
 static BehaviourUpdateFunc behaviourTab[] = {
-    [debugbot] = debugbotBehaviour,
+    [debugbotStart] = debugbotBehaviourStart,
+    [debugbotLoop] = debugbotBehaviourLoop,
 };
 
 /*
@@ -95,18 +99,17 @@ deleteEntityBehaviourManager(EntityBehaviourManager *mgr)
     free(mgr);
 }
 
-/*
- * REQUIRES
- * mgr is a pointer to a valid Behaviour Manager.
- *
- * MODIFIES
- * mgr
- *
- * EFFECTS
- *
- */
 static void
-debugbotBehaviour(EntityBehaviourManager *mgr, unsigned short entityKey)
+debugbotBehaviourStart(EntityBehaviourManager *mgr, unsigned short entityKey)
+{
+    mgr->poolRef.x[entityKey] = WIDTH / 2;
+    mgr->poolRef.y[entityKey] = HEIGHT / 2;
+    // mgr->
+    mgr->behaviourKey[entityKey] = debugbotLoop;
+}
+
+static void
+debugbotBehaviourLoop(EntityBehaviourManager *mgr, unsigned short entityKey)
 {
     mgr->poolRef.x[entityKey]++;
 }
