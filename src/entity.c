@@ -52,6 +52,7 @@ getEntityPoolRef(const EntityPool *pool)
         .activeIndexMap = pool->activeIndexMap,
         .x = pool->x,
         .y = pool->y,
+        .pool = pool,
     };
 }
 
@@ -72,6 +73,9 @@ updateActiveIndexMap(EntityPool *pool)
     int j;
     int k;
 
+    if (!pool->isActiveIndexMapDirty)
+        return;
+    pool->isActiveIndexMapDirty = 0;
     i = pool->activeCount;
     j = 0;
     k = 0;
@@ -103,6 +107,7 @@ spawnEntity(EntityPool *pool)
 
     ret = pool->next;
     pool->isActive[ret] = 1;
+    pool->isActiveIndexMapDirty = 1;
     if (pool->next + 1 < pool->count) {
         pool->next++;
         pool->activeCount++;
@@ -128,6 +133,7 @@ void
 despawnEntity(EntityPool *pool, unsigned short key)
 {
     if (pool->isActive[key]) {
+        pool->isActiveIndexMapDirty = 1;
         pool->isActive[key] = 0;
         pool->activeCount--;
     }
@@ -184,3 +190,14 @@ invalidateEntityPool(EntityPool *pool)
     /* TODO associated subsystems could be freed here */
     deleteEventManager(pool->onSpawnEntityEvent);
 }
+
+EntityPoolActiveIndexList
+getEntityPoolActiveIndexList(EntityPool *pool)
+{
+    updateActiveIndexMap(pool);
+    return (EntityPoolActiveIndexList) {
+        .n = pool->activeCount,
+        .keys = pool->activeIndexMap,
+    };
+}
+

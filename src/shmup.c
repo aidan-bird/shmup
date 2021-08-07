@@ -59,6 +59,12 @@ static EntityBehaviourManager *testBeh;
 static AssetTable animTab;
 static Animator *testAnimator;
 
+/* XXX testing the collision detection system */
+static CircleCollider *testCollider;
+
+/* XXX testing the event system */
+static EventManager *onCollisionTestEvent;
+
 /*
  * REQUIRES
  * events are handled before calling this.
@@ -71,6 +77,9 @@ static Animator *testAnimator;
 void
 updateGame()
 {
+    /* XXX testing the collision detection system + the event system */
+    short colliderKey;
+
     /* update player */
     playerVelocityXScale = 0;
     playerVelocityYScale = 0;
@@ -93,6 +102,16 @@ updateGame()
 
     /* update entity pools */
     updateEntityPool(&playerBullets);
+
+    /* XXX testing the collision detection system + the event system */
+    colliderKey = testCircCollider(playerX, playerY, 32, testCollider);
+    if (colliderKey >= 0) {
+        /* raise onCollision Event */
+        unsigned short j;
+
+        j = colliderKey;
+        raiseEvent(onCollisionTestEvent, &j);
+    }
 
     /* XXX test behaviour system */
     updateEntityBehaviourManager(testBeh);
@@ -308,20 +327,24 @@ main(int argc, char **argv)
     };
     loadAllFromAssetDefTab(&animTab, &animSpriteSheet);
     testAnimator = newAnimator(&playerBullets, &animTab);
-
+    testCollider = newCircCollider(&playerBullets);
     /* XXX testing the behaviour system */
-    testBeh = newEntityBehaviourManager(&playerBullets);
-
-    /* XXX spawn a bullet for testing the event system */
+    SubsystemsList subsystemsTest = (SubsystemsList) {
+        .debug = {
+            .animator = testAnimator,
+            .collider = testCollider,
+        },
+    };
+    testBeh = newEntityBehaviourManager(&playerBullets, &subsystemsTest);
     unsigned short key;
     key = spawnEntity(&playerBullets);
-    playerBullets.x[key] = WIDTH / 2;
-    playerBullets.y[key] = 55;
-
-    setAnimation(testAnimator, key, debuganim, 0, 0);
-
-    /* XXX testing the behaviour system */
+    playerBullets.x[key] = 256;
+    playerBullets.y[key] = 256;
     testBeh->behaviourKey[key] = debugbotStart;
+    onCollisionTestEvent = newEventManager(NULL, "onCollisionTestEvent");
+    subscribeToEventManager(onCollisionTestEvent, testBeh,
+            onCollisionTestEvent_EntityBehaviourManager,
+            "onCollisionTestEvent_EntityBehaviourManager");
     updateActiveIndexMap(&playerBullets);
 
     /* start game */
@@ -336,6 +359,8 @@ main(int argc, char **argv)
     animTab.destroy(&animTab);
     deleteAnimator(testAnimator);
     deleteEntityBehaviourManager(testBeh);
+    deleteEventManager(onCollisionTestEvent);
+    deleteCircCollider(testCollider);
 
     spriteTest.destroy(&spriteTest);
     SDL_DestroyRenderer(renderer);

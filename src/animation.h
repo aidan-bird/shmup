@@ -24,7 +24,8 @@ setAnimation(Animator *animator, unsigned short entityKey,
 /* XXX */
 void
 setAnimation(Animator *animator, unsigned short entityKey,
-    unsigned short animKey, unsigned char selector, unsigned char initialFrame);
+    unsigned short animKey, unsigned char selector,
+    unsigned char initialFrame);
 
 
 struct Animator

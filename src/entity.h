@@ -22,7 +22,13 @@
 
 typedef struct EntityPool EntityPool;
 typedef struct EntityPoolRef EntityPoolRef;
+typedef struct EntityPoolActiveIndexList EntityPoolActiveIndexList;
 
+struct EntityPoolActiveIndexList
+{
+    size_t n;
+    const unsigned short *keys;
+};
 
 int addOnSpawnEntityEventManager(EntityPool *pool);
 void updateActiveIndexMap(EntityPool *pool);
@@ -31,6 +37,7 @@ void updateEntityPosition(EntityPool *pool);
 void despawnEntity(EntityPool *pool, unsigned short key);
 void invalidateEntityPool(EntityPool *pool);
 unsigned short spawnEntity(EntityPool *pool);
+EntityPoolActiveIndexList getEntityPoolActiveIndexList(EntityPool *pool);
 
 /*
  * Represents a fixed-length pool of objects.
@@ -50,6 +57,7 @@ struct EntityPool
     float *x;
     float *y;
     EventManager *onSpawnEntityEvent;
+    char isActiveIndexMapDirty;
 };
 
 /* 
@@ -66,6 +74,7 @@ struct EntityPoolRef
     const unsigned short *activeIndexMap;
     float *x;
     float *y;
+    const EntityPool *pool;
 };
 
 EntityPoolRef getEntityPoolRef(const EntityPool *pool);

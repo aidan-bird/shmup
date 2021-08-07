@@ -111,9 +111,11 @@ void
 drawAnimator(SDL_Renderer *renderer, const Animator *animator)
 {
     size_t j;
+    EntityPoolActiveIndexList list;
 
-    for (int i = 0; i < *animator->poolRef.activeCount; i++) {
-        j = animator->poolRef.activeIndexMap[i];
+    list = getEntityPoolActiveIndexList(animator->poolRef.pool);
+    for (int i = 0; i < list.n; i++) {
+        j = list.keys[i];
         drawSprite(renderer, animator->assetTab, animator->animKeys[j],
             animator->poolRef.x[j], animator->poolRef.y[j],
             animator->selectors[j], animator->frames[j]);
