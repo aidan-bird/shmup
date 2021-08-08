@@ -5,13 +5,14 @@
 
 typedef struct AssetDef AssetDef;
 typedef struct AssetDefTab AssetDefTab;
-
 typedef struct AssetTable AssetTable;
 typedef struct AssetLoader AssetLoader;
+typedef union AssetMetadata AssetMetadata;
+typedef enum AssetLoaderStatus AssetLoaderStatus;
+
 typedef const void* (*AssetLoaderFunc)(AssetLoader*, const char *);
 typedef void (*AssetTabDestroyFunc)(AssetTable*);
 typedef int (*AssetTabInitFunc)(AssetTable*, size_t);
-typedef union AssetMetadata AssetMetadata;
 
 int initSpriteAssetTable(AssetTable *tab, size_t n);
 void destroySpriteAssetTable(AssetTable *tab);
@@ -22,6 +23,14 @@ drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey,
 const void *spriteLoaderFunc(AssetLoader *loader, const char *path);
 const void *animLoaderFunc(AssetLoader *loader, const char *path);
 void destroyAnimAssetTable(AssetTable *tab);
+int isAssetLoaded(const AssetTable *tab, unsigned assetKey);
+
+enum AssetLoaderStatus
+{
+    loaded = 0,
+    not_loaded = 1,
+    invalid = 2,
+};
 
 struct AssetLoader
 {
@@ -47,6 +56,7 @@ struct AssetTable
     AssetLoader loader;
     const AssetDefTab *assetDefTable;
     const void **assets;
+    AssetLoaderStatus *loaderStatus;
 };
 
 union AssetMetadata {

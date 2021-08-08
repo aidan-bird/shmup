@@ -136,6 +136,7 @@ drawGame()
 {
     drawSprite(renderer, &spriteTest, debugred, playerX, playerY, 0, 0);
     drawAnimator(renderer, testAnimator);
+    drawCircCollider(renderer, testCollider);
 }
 
 /*

@@ -3,6 +3,7 @@
 
 #include "./entity.h"
 #include "./collision.h"
+#include "./box_collision.h"
 #include "./animation.h"
 
 #define setEntityBehaviour(MGR, ENTITY_KEY, BEHAVIOUR_KEY) \
@@ -25,6 +26,10 @@ union BehaviourState
 /* XXX determine where this should be defined */
 union SubsystemsList
 {
+    /*
+     * each struct corosponds to the subsystems that a particular type of 
+     * entity will need
+     */
     struct DebugSubsystemsList {
         Animator *animator; 
         CircleCollider *collider;
@@ -32,8 +37,14 @@ union SubsystemsList
     struct EnemyBulletSubsystemsList {
         Animator *animator; 
         CircleCollider *circleCollider;
-        CircleCollider *boxCollider;
+        /* XXX box collider not needed for this type of entity */
+        BoxCollider *boxCollider;
     } enemyBullet;
+    struct EnemySubsystemsList {
+        Animator *animator; 
+        CircleCollider *circleCollider;
+        BoxCollider *boxCollider;
+    } enemy;
 };
 
 struct EntityBehaviourManager

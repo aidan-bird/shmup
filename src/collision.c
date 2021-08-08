@@ -1,9 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "./collision.h"
 #include "./entity.h"
 #include "./utils.h"
+
+#define ONE_ON_ROOT_2 0.707106781186547
+#define MAX_RADIUS (1 << 8)
 
 /*
  * TODO
@@ -91,6 +95,7 @@ testCircCollider(float x, float y, float r, const CircleCollider *collider)
 
     for (int i = 0; i < *collider->poolRef.activeCount; i++) {
         /* (x2 - x1)^2 + (y2 - y1)^2 <= (r1 + r2)^2 ---> HIT */
+        /* XXX use get active index func */
         j = collider->poolRef.activeIndexMap[i];
         diffX = SQUARE(x - collider->poolRef.x[j]);
         diffY = SQUARE(y - collider->poolRef.y[j]);
@@ -103,4 +108,40 @@ testCircCollider(float x, float y, float r, const CircleCollider *collider)
     return -1;
 }
 
+void
+drawCircCollider(SDL_Renderer *renderer, const CircleCollider *collider)
+{
+    unsigned char radius;
+    unsigned char endpt;
+    unsigned char y;
+    size_t j;
+    size_t l;
+    EntityPoolActiveIndexList list;
+    static SDL_Point points[4 * MAX_RADIUS];
+
+    list = getEntityPoolActiveIndexList(collider->poolRef.pool);
+    for (int i = 0; i < list.n; i++) {
+        j = list.keys[i];
+        l = 0;
+        radius = collider->radius[j];
+        /* 
+         * midpoint circle algorithm
+         * based on "https://web.archive.org/web/20120422045142/https://banu.com/blog/7/drawing-circles/"
+         */
+        endpt = radius * ONE_ON_ROOT_2;
+        for (int x = 0; x <= endpt; x++) {
+            y = sqrtf(SQUARE(ONE_ON_ROOT_2) - SQUARE(x));
+            points[l]     = (SDL_Point) { .x = x,  .y =  y }; 
+            points[l + 1] = (SDL_Point) { .x = x,  .y =  -y }; 
+            points[l + 2] = (SDL_Point) { .x = -x, .y =   y };
+            points[l + 3] = (SDL_Point) { .x = -x, .y =   -y };
+            points[l + 4] = (SDL_Point) { .x = y,  .y =  x };
+            points[l + 5] = (SDL_Point) { .x = y,  .y =  -x };
+            points[l + 6] = (SDL_Point) { .x = -y, .y =   x };
+            points[l + 7] = (SDL_Point) { .x = -y, .y =   -x }; 
+            l += 8;
+        }
+        SDL_RenderDrawPoints(renderer, points, l);
+    }
+}
 
