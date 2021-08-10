@@ -5,6 +5,16 @@
 #include "./assets.h"
 #include "./animation.h"
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * animator
+ *
+ * EFFECTS
+ * sets an entity to use the animation identified by animKey.
+ */
 void
 setAnimation(Animator *animator, unsigned short entityKey,
     unsigned short animKey, unsigned char selector, unsigned char initialFrame)

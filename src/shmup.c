@@ -26,7 +26,7 @@ typedef void (*GameDrawFunc)();
 #define FPS_CAP_FRAME_TIME (1000 / (FPS_CAP))
 
 static int isGameRunning;
-static AssetTable spriteTest;
+static AssetTable *spriteTest;
 static SDL_Renderer *renderer;
 static SDL_Window *window;
 static SDL_Event events;
@@ -56,7 +56,7 @@ static GameDrawFunc draw;
 static EntityBehaviourManager *testBeh;
 
 /* XXX testing the animation system */
-static AssetTable animTab;
+static AssetTable *animTab;
 static Animator *testAnimator;
 
 /* XXX testing the collision detection system */
@@ -134,7 +134,7 @@ updateGame()
 void
 drawGame()
 {
-    drawSprite(renderer, &spriteTest, debugred, playerX, playerY, 0, 0);
+    drawSprite(renderer, spriteTest, debugred, playerX, playerY, 0, 0);
     drawAnimator(renderer, testAnimator);
     drawCircCollider(renderer, testCollider);
 }
@@ -188,6 +188,8 @@ gameLoop()
     updateStartTime = 0;
     updateEndTime = 0;
 #endif
+    /* ensure that at least one update() occurs before any draw calls */
+    update();
     while (isGameRunning) {
         skipedFrames = 0;
 #if LIMIT_FPS == TRUE
@@ -301,47 +303,24 @@ main(int argc, char **argv)
         goto error0;
     if (!(renderer = rendererOpen(window)))
         goto error1;
-    /* load assets */
-    spriteTest = (AssetTable) {
-        .destroy = destroySpriteAssetTable,
-        .loader = (AssetLoader) {
-            .load = spriteLoaderFunc,
-            .sprite = {
-                .renderer = renderer,
-            },
-        }
-    };
-    if (loadAllFromAssetDefTab(&spriteTest, &spritesheet))
+    spriteTest = loadSpriteSheet(&spritesheet, renderer);
+    if (!spriteTest)
         goto error2;
     /* XXX testing the event system */
     addOnSpawnEntityEventManager(&playerBullets);
-
     /* XXX testing the animation system */
-    animTab = (AssetTable) {
-        .destroy = destroyAnimAssetTable,
-        .loader = (AssetLoader) {
-            .load = animLoaderFunc,
-            .sprite = {
-                .renderer = renderer,
-            },
-        }
-    };
-    loadAllFromAssetDefTab(&animTab, &animSpriteSheet);
-    testAnimator = newAnimator(&playerBullets, &animTab);
+    animTab = loadSpriteSheet(&animSpriteSheet, renderer);
+    testAnimator = newAnimator(&playerBullets, animTab);
     testCollider = newCircCollider(&playerBullets);
-    /* XXX testing the behaviour system */
-    SubsystemsList subsystemsTest = (SubsystemsList) {
-        .debug = {
-            .animator = testAnimator,
-            .collider = testCollider,
-        },
-    };
-    testBeh = newEntityBehaviourManager(&playerBullets, &subsystemsTest);
-    unsigned short key;
-    key = spawnEntity(&playerBullets);
-    playerBullets.x[key] = 256;
-    playerBullets.y[key] = 256;
-    testBeh->behaviourKey[key] = debugbotStart;
+    testBeh = newDebugEntityBehaviourManager(&playerBullets, testAnimator,
+        testCollider);
+    {
+        unsigned short key;
+        key = spawnEntity(&playerBullets);
+        playerBullets.x[key] = 256;
+        playerBullets.y[key] = 256;
+        testBeh->behaviourKey[key] = debugbotStart;
+    }
     onCollisionTestEvent = newEventManager(NULL, "onCollisionTestEvent");
     subscribeToEventManager(onCollisionTestEvent, testBeh,
             onCollisionTestEvent_EntityBehaviourManager,
@@ -357,19 +336,19 @@ main(int argc, char **argv)
     /* cleanup */
 
     /* XXX */
-    animTab.destroy(&animTab);
+    deleteAssetTable(spriteTest);
+    deleteAssetTable(animTab);
     deleteAnimator(testAnimator);
     deleteEntityBehaviourManager(testBeh);
     deleteEventManager(onCollisionTestEvent);
     deleteCircCollider(testCollider);
 
-    spriteTest.destroy(&spriteTest);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
     return 0;
 error3:;
-    spriteTest.destroy(&spriteTest);
+    deleteAssetTable(spriteTest);
 error2:;
     SDL_DestroyRenderer(renderer);
 error1:;

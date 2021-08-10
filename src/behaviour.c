@@ -28,6 +28,21 @@ static BehaviourUpdateFunc behaviourTab[] = {
     [despawnSelf] = despawnSelfStart,
 };
 
+EntityBehaviourManager *
+newDebugEntityBehaviourManager(EntityPool *pool, Animator *animator,
+    CircleCollider *collider)
+{
+    SubsystemsList subsys;
+
+    subsys = (SubsystemsList) {
+        .debug = {
+            .animator = animator,
+            .collider = collider,
+        },
+    };
+    return newEntityBehaviourManager(pool, &subsys);
+}
+
 /*
  * REQUIRES
  * all pointer arguments are valid.

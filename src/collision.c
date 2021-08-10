@@ -15,6 +15,7 @@
  * AABB VS AABB
  * circle vs AABB?
  * point vs point?
+ * spatial partitioning?
  * Simd-ify the collision detection algorithms?
  *
  * Make colliders that only test against one entity e.g., the player vs enemy 

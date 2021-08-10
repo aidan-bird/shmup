@@ -7,6 +7,18 @@
 #include "./sdlutils.h"
 #include "./utils.h"
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * none
+ *
+ * EFFECTS
+ * prints a message about the load status of an asset identified by assetKey.
+ * returns non-zero if the asset identified by assetKey is loaded.
+ * returns zero otherwise.
+ */
 static int
 statAssetKey(const AssetTable *tab, unsigned assetKey)
 {
@@ -29,6 +41,17 @@ statAssetKey(const AssetTable *tab, unsigned assetKey)
     return 0;
 }
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * tab
+ *
+ * EFFECTS
+ * marks all elements in tab as either invalid if the element is not 
+ * referenced by a key in defTab, or not_loaded otherwise.
+ */
 static void
 setupLoaderStatusTable(AssetLoaderStatus* tab, size_t n,
     const AssetDefTab *defTab)
@@ -39,6 +62,17 @@ setupLoaderStatusTable(AssetLoaderStatus* tab, size_t n,
         tab[defTab->keys[i]] = not_loaded;
 }
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * none
+ *
+ * EFFECTS
+ * returns non-zero if the asset identified by assetKey is loaded.
+ * returns zero otherwise.
+ */
 int
 isAssetLoaded(const AssetTable *tab, unsigned assetKey)
 {
@@ -154,20 +188,6 @@ spriteLoaderFunc(AssetLoader *loader, const char *path)
     return (const void *)loadImage(loader->sprite.renderer, path);
 }
 
-/* XXX */
-const void*
-animLoaderFunc(AssetLoader *loader, const char *path)
-{
-    return (const void *)loadImage(loader->sprite.renderer, path);
-}
-
-/* XXX */
-void
-destroyAnimAssetTable(AssetTable *tab)
-{
-    destroySpriteAssetTable(tab);
-}
-
 /*
  * REQUIRES
  * none
@@ -185,8 +205,15 @@ drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey,
     int spriteWidth;
     int spriteHeight;
 
-    if (!isAssetLoaded(spriteTab, assetKey))
-        return;
+    /* 
+     * XXX
+     * check if asset key is valid.
+     * this may not be needed if atleast one update call occurs before any 
+     * draw calls.
+     * otherwise it is possible for draw calls to occurs on invalid keys
+     */
+    //if (!isAssetLoaded(spriteTab, assetKey))
+    //    return;
     spriteWidth = spriteTab->assetDefTable->assetDefs[assetKey].meta.sprite
         .cellWidth;
     spriteHeight = spriteTab->assetDefTable->assetDefs[assetKey].meta.sprite
@@ -205,4 +232,60 @@ drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey,
     };
     SDL_RenderCopy(renderer, spriteTab->assets[assetKey], &src, &dest);
 }
+
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * renderer
+ *
+ * EFFECTS
+ * loads a sprite sheet from a AssetDefTab
+ * returns NULL on error
+ */
+AssetTable *
+loadSpriteSheet(const AssetDefTab *spriteSheetDef, SDL_Renderer *renderer)
+{
+    AssetTable *ret;
+
+    ret = malloc(sizeof(AssetTable));
+    if (!ret)
+        goto error1;
+    *ret = (AssetTable) {
+        .destroy = destroySpriteAssetTable,
+            .loader = (AssetLoader) {
+                .load = spriteLoaderFunc,
+                .sprite = {
+                    .renderer = renderer,
+                },
+            }
+    };
+    if (loadAllFromAssetDefTab(ret, spriteSheetDef))
+        goto error2;
+    return ret;
+error2:;
+    free(ret);
+error1:;
+    return NULL;
+}
+
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * tab
+ *
+ * EFFECTS
+ * deletes tab
+ */
+void
+deleteAssetTable(AssetTable *tab)
+{
+    if (tab->destroy)
+        tab->destroy(tab);
+    free(tab);
+}
+
 

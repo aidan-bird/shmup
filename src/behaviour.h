@@ -11,9 +11,7 @@ mgr->behaviourKey[ENTITY_KEY] = BEHAVIOUR_KEY;
 
 typedef enum BehaviourKey BehaviourKey;
 typedef struct EntityBehaviourManager EntityBehaviourManager;
-
 typedef union BehaviourState BehaviourState;
-
 typedef union SubsystemsList SubsystemsList;
 
 union BehaviourState
@@ -56,20 +54,6 @@ struct EntityBehaviourManager
     SubsystemsList subsystems;
 };
 
-void onSpawnEvent_EntityBehaviourManager(EntityPool *caller, void *subscriber,
-    const void *args);
-
-/* XXX used for testing */
-void onCollisionTestEvent_EntityBehaviourManager(void *nullptr,
-    EntityBehaviourManager *mgr, const unsigned short *key);
-
-
-EntityBehaviourManager *newEntityBehaviourManager(EntityPool *pool, 
-    SubsystemsList *subsystems);
-
-void deleteEntityBehaviourManager(EntityBehaviourManager *mgr);
-void updateEntityBehaviourManager(EntityBehaviourManager *mgr);
-
 enum BehaviourKey
 {
     no_behaviour,
@@ -77,5 +61,18 @@ enum BehaviourKey
     debugbotStart,
     debugbotLoop,
 };
+
+void onSpawnEvent_EntityBehaviourManager(EntityPool *caller, void *subscriber,
+    const void *args);
+/* XXX used for testing */
+void onCollisionTestEvent_EntityBehaviourManager(void *nullptr,
+    EntityBehaviourManager *mgr, const unsigned short *key);
+EntityBehaviourManager *newEntityBehaviourManager(EntityPool *pool, 
+    SubsystemsList *subsystems);
+void deleteEntityBehaviourManager(EntityBehaviourManager *mgr);
+void updateEntityBehaviourManager(EntityBehaviourManager *mgr);
+
+EntityBehaviourManager *newDebugEntityBehaviourManager(EntityPool *pool,
+    Animator *animator, CircleCollider *collider);
 
 #endif

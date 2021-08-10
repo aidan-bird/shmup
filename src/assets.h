@@ -14,17 +14,6 @@ typedef const void* (*AssetLoaderFunc)(AssetLoader*, const char *);
 typedef void (*AssetTabDestroyFunc)(AssetTable*);
 typedef int (*AssetTabInitFunc)(AssetTable*, size_t);
 
-int initSpriteAssetTable(AssetTable *tab, size_t n);
-void destroySpriteAssetTable(AssetTable *tab);
-int loadAllFromAssetDefTab(AssetTable *tab, const AssetDefTab *defTab);
-void
-drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey, 
-    float x, float y, unsigned char row, unsigned char col);
-const void *spriteLoaderFunc(AssetLoader *loader, const char *path);
-const void *animLoaderFunc(AssetLoader *loader, const char *path);
-void destroyAnimAssetTable(AssetTable *tab);
-int isAssetLoaded(const AssetTable *tab, unsigned assetKey);
-
 enum AssetLoaderStatus
 {
     loaded = 0,
@@ -95,5 +84,19 @@ struct AssetDefTab
     const int *keys;
     const AssetDef *assetDefs;
 };
+
+int initSpriteAssetTable(AssetTable *tab, size_t n);
+void destroySpriteAssetTable(AssetTable *tab);
+int loadAllFromAssetDefTab(AssetTable *tab, const AssetDefTab *defTab);
+void
+drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey, 
+    float x, float y, unsigned char row, unsigned char col);
+const void *spriteLoaderFunc(AssetLoader *loader, const char *path);
+const void *animLoaderFunc(AssetLoader *loader, const char *path);
+void destroyAnimAssetTable(AssetTable *tab);
+int isAssetLoaded(const AssetTable *tab, unsigned assetKey);
+AssetTable *loadSpriteSheet(const AssetDefTab *spriteSheetDef,
+    SDL_Renderer *renderer);
+void deleteAssetTable(AssetTable *tab);
 
 #endif
