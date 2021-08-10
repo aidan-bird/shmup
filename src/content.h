@@ -6,6 +6,7 @@
 #include "assets.h"
 
 typedef enum SpriteAssetKeys SpriteAssetKeys;
+typedef enum AnimAssetKeys AnimAssetKeys;
 
 enum SpriteAssetKeys
 {
@@ -19,7 +20,6 @@ enum AnimAssetKeys
 };
 
 const extern AssetDefTab spritesheet;
-
 const extern AssetDefTab animSpriteSheet;
 
 #endif

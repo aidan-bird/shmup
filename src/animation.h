@@ -15,18 +15,9 @@ Animator *newAnimator(const EntityPool *pool, const AssetTable *assetTab);
 void deleteAnimator(Animator *animator);
 void updateAnimator(Animator *animator);
 void drawAnimator(SDL_Renderer *renderer, const Animator *animator);
-
-void
-setAnimation(Animator *animator, unsigned short entityKey, 
+void setAnimation(Animator *animator, unsigned short entityKey, 
     unsigned short animKey, unsigned char selector,
     unsigned char initialFrame);
-
-/* XXX */
-void
-setAnimation(Animator *animator, unsigned short entityKey,
-    unsigned short animKey, unsigned char selector,
-    unsigned char initialFrame);
-
 
 struct Animator
 {

@@ -25,8 +25,6 @@ struct ShotPatternManager
     EntityPoolRef shooterPoolRef;
     EntityBehaviourManager *reservePool;
     EntityBehaviourManager *patternPool;
-    /* XXX may not be needed */
-    unsigned short *shooterKey;
 };
 
 ShotPatternManager *newShotPatternManager(EntityPool *shooterPool, 

@@ -22,6 +22,9 @@ ShotPatternManager *
 newShotPatternManager(EntityPool *shooterPool, 
     EntityBehaviourManager *reservePool, EntityBehaviourManager *patternPool)
 {
+
+    /* TODO try spawning simple bullets and forming a pattern */
+    
     // size_t n;
     // ShotPatternManager *ret;
 
@@ -41,6 +44,4 @@ spawnShotPattern(const ShotPatternManager *mgr, unsigned short shooterKey,
     ShotPatternKey patternKey, const SpawnShotPatternArgs *args)
 {
     // mgr->
-
 }
-

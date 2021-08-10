@@ -4,6 +4,7 @@
 #include "./entity.h"
 #include "./config.h"
 #include "./content.h"
+#include "./kinematics.h"
 
 typedef void (*BehaviourUpdateFunc)(EntityBehaviourManager *mgr,
     unsigned short entityKey);
@@ -14,6 +15,11 @@ static void debugbotBehaviourLoop(EntityBehaviourManager *mgr,
     unsigned short entityKey);
 static void despawnSelfStart(EntityBehaviourManager *mgr,
     unsigned short entityKey);
+static void simpleBulletBehaviourStart(EntityBehaviourManager *mgr,
+    unsigned short entityKey);
+
+EntityBehaviourManager *newEntityBehaviourManager(EntityPool *pool,
+    SubsystemsList *subsystems);
 
 /* 
  * XXX there could be multiple behaviour c files, each corresponding to an 
@@ -26,11 +32,43 @@ static BehaviourUpdateFunc behaviourTab[] = {
     [debugbotStart] = debugbotBehaviourStart,
     [debugbotLoop] = debugbotBehaviourLoop,
     [despawnSelf] = despawnSelfStart,
+    [simpleBulletStart] = simpleBulletBehaviourStart,
 };
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * mgr
+ *
+ * EFFECTS
+ * sets the behaviour of an entity.
+ * args is optional
+ */
+void
+setBehaviour(EntityBehaviourManager *mgr, const BehaviourArgs *args, 
+    BehaviourKey behaviourKey, unsigned short entityKey)
+{
+    mgr->behaviourKey[entityKey] = behaviourKey;
+    mgr->ticksDelta[entityKey] = 0;
+    if (args)
+        mgr->args[entityKey] = *args;
+}
+
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * pool, animator, collider
+ *
+ * EFFECTS
+ * creates a new Entity Behaviour Manager for debugging/testing
+ */
 EntityBehaviourManager *
 newDebugEntityBehaviourManager(EntityPool *pool, Animator *animator,
-    CircleCollider *collider)
+    CircleCollider *collider, KinematicsManager *kinematics)
 {
     SubsystemsList subsys;
 
@@ -38,6 +76,7 @@ newDebugEntityBehaviourManager(EntityPool *pool, Animator *animator,
         .debug = {
             .animator = animator,
             .collider = collider,
+            .kinematics = kinematics,
         },
     };
     return newEntityBehaviourManager(pool, &subsys);
@@ -55,15 +94,10 @@ newDebugEntityBehaviourManager(EntityPool *pool, Animator *animator,
  * sets up the behaviour entry of an entity when it is spawned.
  */
 void
-onSpawnEvent_EntityBehaviourManager(EntityPool *caller, void *subscriber,
-    const void *args)
+onSpawnEvent_EntityBehaviourManager(EntityPool *caller, 
+    EntityBehaviourManager *subscriber, const unsigned short *args)
 {
-    EntityBehaviourManager *mgr;
-    unsigned short entityKey;
-
-    mgr = subscriber;
-    entityKey = *(unsigned short *)args;
-    mgr->ticksAlive[entityKey] = 0;
+    subscriber->ticksAlive[*args] = 0;
 }
 
 /*
@@ -85,8 +119,8 @@ newEntityBehaviourManager(EntityPool *pool, SubsystemsList *subsystems)
     EntityBehaviourManager *ret;
 
     n = pool->count;
-    vectorSize = sizeof(unsigned char) + sizeof(unsigned short) 
-        + sizeof(unsigned) + sizeof(BehaviourState);
+    vectorSize = sizeof(unsigned char) + 2 * sizeof(unsigned short) 
+        + sizeof(unsigned) + sizeof(BehaviourState) + sizeof(BehaviourArgs);
     ret = malloc(sizeof(EntityBehaviourManager) + n * vectorSize);
     if (!ret)
         goto error1;
@@ -95,7 +129,10 @@ newEntityBehaviourManager(EntityPool *pool, SubsystemsList *subsystems)
     ret->behaviourKey = (void *)ret + sizeof(EntityBehaviourManager);
     ret->ticksAlive = (void *)ret->behaviourKey + n * sizeof(unsigned char);
     ret->state = (void *)ret->ticksAlive + n * sizeof(unsigned short);
-    ret->subsystems = *subsystems;
+    ret->args = (void *)ret->state + n * sizeof(BehaviourState);
+    ret->ticksDelta = (void *)ret->args + n * sizeof(BehaviourArgs);
+    if (subsystems)
+        ret->subsystems = *subsystems;
     /* subscribe to onSpawnEntity Event*/
     if (subscribeToEventManager(pool->onSpawnEntityEvent, ret,
         onSpawnEvent_EntityBehaviourManager,
@@ -138,7 +175,7 @@ debugbotBehaviourStart(EntityBehaviourManager *mgr, unsigned short entityKey)
     setAnimation(mgr->subsystems.debug.animator, entityKey, debuganim, 0, 0);
     /* TODO set events e.g., onCollideEvent */
     /* start looping behaviour */
-    mgr->behaviourKey[entityKey] = debugbotLoop;
+    setBehaviour(mgr, NULL, debugbotLoop, entityKey);
 }
 
 /* XXX sample code that demonstrates the behaviour system */
@@ -149,8 +186,8 @@ debugbotBehaviourLoop(EntityBehaviourManager *mgr, unsigned short entityKey)
     mgr->state[entityKey].debugbot.i++;
     mgr->poolRef.x[entityKey]++;
     //mgr->poolRef.y[entityKey] += mgr->state[entityKey].debugbot.i;
-    if (mgr->ticksAlive[entityKey] > 120)
-        mgr->behaviourKey[entityKey] = despawnSelf;
+    if (mgr->ticksDelta[entityKey] > 120)
+        setBehaviour(mgr, NULL, despawnSelf, entityKey);
 }
 
 /* XXX used for testing */
@@ -166,6 +203,28 @@ onCollisionTestEvent_EntityBehaviourManager(void *nullptr,
     EntityBehaviourManager *mgr, const unsigned short *key)
 {
     mgr->behaviourKey[*key] = despawnSelf;
+}
+
+/* XXX */
+static void
+simpleBulletBehaviourStart(EntityBehaviourManager *mgr,
+    unsigned short entityKey)
+{
+    struct SimpleBulletBehaviourArgs *args;
+    KinematicsManager *kinMgr;
+
+    args = mgr->args + entityKey;
+    kinMgr = mgr->subsystems.debug.kinematics;
+    mgr->poolRef.x[entityKey] = args->startX;
+    mgr->poolRef.y[entityKey] = args->startY;
+    mgr->subsystems.debug.collider->radius[entityKey] = args->radius;
+    kinMgr->rot[entityKey] = args->rot;
+    kinMgr->speed[entityKey] = args->speed;
+    kinMgr->accel[entityKey] = 0;
+    kinMgr->angularVelocity[entityKey] = 0;
+    setAnimation(mgr->subsystems.debug.animator, entityKey, args->animKey, 0,
+        0);
+    setBehaviour(mgr, NULL, no_behaviour, entityKey);
 }
 
 /*

@@ -15,6 +15,7 @@
 #include "./stage.h" 
 #include "./animation.h" 
 #include "./behaviour.h"
+#include "./kinematics.h"
 
 typedef void (*GameUpdateFunc)();
 typedef void (*GameDrawFunc)();
@@ -64,6 +65,7 @@ static CircleCollider *testCollider;
 
 /* XXX testing the event system */
 static EventManager *onCollisionTestEvent;
+static KinematicsManager *testKinematics;
 
 /*
  * REQUIRES
@@ -101,8 +103,10 @@ updateGame()
     playerY += playerVelocityY;
 
     /* update entity pools */
+    /* XXX not needed */
     updateEntityPool(&playerBullets);
-
+    updateEntityBehaviourManager(testBeh);
+    updateKinematicsManager(testKinematics);
     /* XXX testing the collision detection system + the event system */
     colliderKey = testCircCollider(playerX, playerY, 32, testCollider);
     if (colliderKey >= 0) {
@@ -112,10 +116,7 @@ updateGame()
         j = colliderKey;
         raiseEvent(onCollisionTestEvent, &j);
     }
-
     /* XXX test behaviour system */
-    updateEntityBehaviourManager(testBeh);
-
     /* XXX test animation system */
     updateAnimator(testAnimator);
 }
@@ -136,7 +137,10 @@ drawGame()
 {
     drawSprite(renderer, spriteTest, debugred, playerX, playerY, 0, 0);
     drawAnimator(renderer, testAnimator);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    drawCircle(renderer, playerX, playerY, 32);
     drawCircCollider(renderer, testCollider);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 }
 
 /*
@@ -312,14 +316,28 @@ main(int argc, char **argv)
     animTab = loadSpriteSheet(&animSpriteSheet, renderer);
     testAnimator = newAnimator(&playerBullets, animTab);
     testCollider = newCircCollider(&playerBullets);
+
+    testKinematics = newKinematicsManager(&playerBullets);
+
     testBeh = newDebugEntityBehaviourManager(&playerBullets, testAnimator,
-        testCollider);
+        testCollider, testKinematics);
+    /* XXX spawn a test entity */
     {
         unsigned short key;
+        BehaviourArgs tmp;
+
+        tmp = (BehaviourArgs) {
+            .simpleBullet = {
+                .startX = WIDTH / 2,
+                .startY = HEIGHT / 2,
+                .rot = PI_F / 2,
+                .speed = 5,
+                .radius = 32,
+                .animKey = debuganim,
+            },
+        };
         key = spawnEntity(&playerBullets);
-        playerBullets.x[key] = 256;
-        playerBullets.y[key] = 256;
-        testBeh->behaviourKey[key] = debugbotStart;
+        setBehaviour(testBeh, &tmp, simpleBulletStart, key);
     }
     onCollisionTestEvent = newEventManager(NULL, "onCollisionTestEvent");
     subscribeToEventManager(onCollisionTestEvent, testBeh,
@@ -336,6 +354,7 @@ main(int argc, char **argv)
     /* cleanup */
 
     /* XXX */
+    deleteKinematicsManager(testKinematics);
     deleteAssetTable(spriteTest);
     deleteAssetTable(animTab);
     deleteAnimator(testAnimator);

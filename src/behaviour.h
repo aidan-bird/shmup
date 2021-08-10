@@ -5,12 +5,12 @@
 #include "./collision.h"
 #include "./box_collision.h"
 #include "./animation.h"
-
-#define setEntityBehaviour(MGR, ENTITY_KEY, BEHAVIOUR_KEY) \
-mgr->behaviourKey[ENTITY_KEY] = BEHAVIOUR_KEY;
+#include "./content.h"
+#include "./kinematics.h"
 
 typedef enum BehaviourKey BehaviourKey;
 typedef struct EntityBehaviourManager EntityBehaviourManager;
+typedef union BehaviourArgs BehaviourArgs;
 typedef union BehaviourState BehaviourState;
 typedef union SubsystemsList SubsystemsList;
 
@@ -31,6 +31,7 @@ union SubsystemsList
     struct DebugSubsystemsList {
         Animator *animator; 
         CircleCollider *collider;
+        KinematicsManager *kinematics;
     } debug;
     struct EnemyBulletSubsystemsList {
         Animator *animator; 
@@ -45,12 +46,26 @@ union SubsystemsList
     } enemy;
 };
 
+union BehaviourArgs
+{
+    struct SimpleBulletBehaviourArgs {
+        float startX;
+        float startY;
+        float rot;
+        float speed;
+        unsigned char radius;
+        AnimAssetKeys animKey;
+    } simpleBullet;
+};
+
 struct EntityBehaviourManager
 {
     EntityPoolRef poolRef;
     unsigned char *behaviourKey;
     unsigned short *ticksAlive;
+    unsigned short *ticksDelta;
     BehaviourState *state;
+    BehaviourArgs *args;
     SubsystemsList subsystems;
 };
 
@@ -60,19 +75,20 @@ enum BehaviourKey
     despawnSelf,
     debugbotStart,
     debugbotLoop,
+    simpleBulletStart,
 };
 
-void onSpawnEvent_EntityBehaviourManager(EntityPool *caller, void *subscriber,
-    const void *args);
+void onSpawnEvent_EntityBehaviourManager(EntityPool *caller, 
+    EntityBehaviourManager *subscriber, const unsigned short *args);
 /* XXX used for testing */
 void onCollisionTestEvent_EntityBehaviourManager(void *nullptr,
     EntityBehaviourManager *mgr, const unsigned short *key);
-EntityBehaviourManager *newEntityBehaviourManager(EntityPool *pool, 
-    SubsystemsList *subsystems);
+EntityBehaviourManager *newDebugEntityBehaviourManager(EntityPool *pool,
+    Animator *animator, CircleCollider *collider,
+    KinematicsManager *kinematics);
 void deleteEntityBehaviourManager(EntityBehaviourManager *mgr);
 void updateEntityBehaviourManager(EntityBehaviourManager *mgr);
-
-EntityBehaviourManager *newDebugEntityBehaviourManager(EntityPool *pool,
-    Animator *animator, CircleCollider *collider);
+void setBehaviour(EntityBehaviourManager *mgr, const BehaviourArgs *args, 
+    BehaviourKey behaviourKey, unsigned short entityKey);
 
 #endif
