@@ -10,6 +10,31 @@ EntityPool enemyBullets = newDebugEntityPool(POOL_SIZE);
 EntityPool enemies = newDebugEntityPool(POOL_SIZE);
 EntityPool pickups = newDebugEntityPool(POOL_SIZE);
 
+EntityPool *
+newEntityPool(size_t n)
+{
+    size_t vectorSize;
+    EntityPool *ret;
+    
+    vectorSize = sizeof(EntityPool) + n * (sizeof(char) 
+        + sizeof(unsigned short) + sizeof(unsigned) + 2 * sizeof(float));
+    ret = malloc(vectorSize);
+    if (!ret)
+        goto error1;
+    ret->next = 0;
+    ret->activeCount = 0;
+    ret->count = n;
+    ret->isActive = (void *)ret + sizeof(EntityPool);
+    ret->activeIndexMap = (void *)ret->isActive + n * sizeof(char);
+    ret->flags = (void *)ret->activeIndexMap + n * sizeof(unsigned short);
+    ret->x = (void *)ret->flags + n * sizeof(unsigned);
+    ret->y = (void *)ret->x + n * sizeof(float);
+    ret->onSpawnEntityEvent = NULL;
+    return ret;
+error1:;
+    return NULL;
+}
+
 /*
  * REQUIRES
  * pool is valid

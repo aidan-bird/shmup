@@ -19,6 +19,9 @@
  * Make colliders that only test against one entity e.g., the player vs enemy 
  * bullets. The motovaiton for doing this is that for circle vs circle
  * collision detection, the (rp - rx)^2 only needs to be computed once.
+ *
+ * make a collider that has only one constant radius/bounds; use this for 
+ * bullet pools that have only one type of bullet
  */
 
 /*
