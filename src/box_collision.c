@@ -3,6 +3,8 @@
 
 #include "./box_collision.h"
 #include "./entity.h"
+#include "./utils.h"
+#include "./debug.h"
 
 BoxCollider *
 newBoxCollider(EntityPool *pool)
@@ -19,13 +21,17 @@ newBoxCollider(EntityPool *pool)
     ret->pool = pool;
     ret->width = (uint8_t *)ret + sizeof(BoxCollider);
     ret->height = (uint8_t *)ret->width + n * sizeof(uint8_t);
+    spawnedObjectsCount++;
     return ret;
 }
 
 void
 deleteBoxCollider(BoxCollider *collider)
 {
+    if (!collider)
+        return;
     free(collider);
+    despawnedObjectsCount++;
 }
 
 int32_t

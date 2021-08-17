@@ -7,6 +7,7 @@
 #include "./content.h"
 #include "./kinematics.h"
 #include "./utils.h"
+#include "./debug.h"
 
 typedef void (*BehaviourUpdateFunc)(EntityBehaviourManager *, uint16_t);
 
@@ -17,9 +18,6 @@ static void simpleBulletBehaviourStart(EntityBehaviourManager *,
     uint16_t);
 static void debugShotPatternStart(EntityBehaviourManager *, uint16_t);
 static void debugShotPatternLoop(EntityBehaviourManager *, uint16_t);
-
-EntityBehaviourManager *newEntityBehaviourManager(EntityPool *,
-    SubsystemsList *);
 
 /* 
  * XXX there could be multiple behaviour c files, each corresponding to an 
@@ -143,6 +141,7 @@ newEntityBehaviourManager(EntityPool *pool, SubsystemsList *subsystems)
         (OnEventFunc)onSpawnEvent_EntityBehaviourManager,
         "onSpawnEvent_EntityBehaviourManager"))
         goto error2;
+    spawnedObjectsCount++;
     return ret;
 error2:;
     free(ret);
@@ -163,7 +162,10 @@ error1:;
 void
 deleteEntityBehaviourManager(EntityBehaviourManager *mgr)
 {
+    if (!mgr)
+        return;
     free(mgr);
+    despawnedObjectsCount++;
 }
 
 /*

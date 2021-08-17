@@ -2,6 +2,8 @@
 #include <stdlib.h>
 
 #include "./event.h"
+#include "./utils.h"
+#include "./debug.h"
 
 /*
  * REQUIRES
@@ -27,6 +29,7 @@ newEventManager(void *parent, const char *label)
         goto error2;
     ret->parent = parent;
     ret->label = label;
+    spawnedObjectsCount++;
     return ret;
 error2:;
     free(ret);
@@ -63,10 +66,13 @@ raiseEvent(const EventManager *mgr, const void *args)
 void
 deleteEventManager(EventManager *mgr)
 {
+    if (!mgr)
+        return;
     printf("DELETING %s EventManager\n", mgr->label == NULL ? "ANONYMOUS" : 
         mgr->label);
     deleteArray(mgr->subscribers);
     free(mgr);
+    despawnedObjectsCount++;
 }
 
 /*

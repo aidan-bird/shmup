@@ -6,6 +6,7 @@
 #include "./entity.h"
 #include "./utils.h"
 #include "./sdlutils.h"
+#include "./debug.h"
 
 /*
  * TODO
@@ -48,6 +49,7 @@ newCircCollider(EntityPool *pool)
         return NULL;
     ret->pool = pool;
     ret->radius = (uint8_t *)ret + sizeof(CircleCollider);
+    spawnedObjectsCount++;
     return ret;
 }
 
@@ -65,7 +67,10 @@ newCircCollider(EntityPool *pool)
 void
 deleteCircCollider(CircleCollider *collider)
 {
+    if (!collider)
+        return;
     free(collider);
+    despawnedObjectsCount++;
 }
 
 /* 

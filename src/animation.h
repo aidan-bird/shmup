@@ -10,7 +10,7 @@
 typedef struct AnimDef AnimDef;
 typedef struct Animator Animator;
 
-Animator *newAnimator(const EntityPool *pool, AssetTable *assetTab);
+Animator *newAnimator(EntityPool *pool, AssetTable *assetTab);
 void deleteAnimator(Animator *animator);
 void updateAnimator(Animator *animator);
 void drawAnimator(SDL_Renderer *renderer, const Animator *animator);

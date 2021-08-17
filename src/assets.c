@@ -6,6 +6,7 @@
 #include "./assets.h"
 #include "./sdlutils.h"
 #include "./utils.h"
+#include "./debug.h"
 
 /*
  * REQUIRES
@@ -132,10 +133,12 @@ loadAllFromAssetDefTab(AssetTable *tab, AssetDefTab *defTab)
         }
         tab->assets[j] = tmp;
         tab->loaderStatus[j] = loaded;
+        spawnedObjectsCount++;
     }
     tab->count = n;
     tab->assetDefTable = defTab;
     printf("DONE loading asset table: %s\n", defTab->label);
+    spawnedObjectsCount++;
     return 0;
 error2:;
     tab->destroy(tab);
@@ -159,16 +162,22 @@ destroySpriteAssetTable(AssetTable *tab)
 {
     SDL_Texture *next;
 
+    if (!tab)
+        return;
     printf("DELETING asset table: %s\n", tab->assetDefTable->label);
     if (!tab)
         return;
     for (size_t i = 0; i < tab->count; i++) {
         next = ((SDL_Texture *)tab->assets[tab->assetDefTable->keys[i]]);
-        if (next)
+        if (next) {
+            despawnedObjectsCount++;
             SDL_DestroyTexture(next);
+        }
     }
-    if (tab->assets)
+    if (tab->assets) {
         free(tab->assets);
+        despawnedObjectsCount++;
+    }
 }
 
 /*
@@ -284,9 +293,12 @@ error1:;
 void
 deleteAssetTable(AssetTable *tab)
 {
+    if (!tab)
+        return;
     if (tab->destroy)
         tab->destroy(tab);
     free(tab);
+    despawnedObjectsCount++;
 }
 
 

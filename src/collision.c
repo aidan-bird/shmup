@@ -3,6 +3,7 @@
 #include "./collision.h"
 #include "./box_collision.h"
 #include "./circle_collision.h"
+#include "./debug.h"
 
 /*
  * REQUIRES

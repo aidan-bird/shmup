@@ -16,6 +16,7 @@
 #include "./animation.h" 
 #include "./behaviour.h"
 #include "./kinematics.h"
+#include "./debug.h"
 
 typedef void (*GameUpdateFunc)();
 typedef void (*GameDrawFunc)();
@@ -351,8 +352,7 @@ main(int argc, char **argv)
     }
     shotPatternTestPool = newEntityPool(10);
     addOnSpawnEntityEventManager(shotPatternTestPool);
-    shotBeh = newDebugEntityBehaviourManager(shotPatternTestPool, testAnimator,
-        testCollider, testKinematics);
+    shotBeh = newEntityBehaviourManager(shotPatternTestPool, NULL);
     /* XXX test spawning a shot pattern */
     {
         uint16_t key;
@@ -386,13 +386,8 @@ main(int argc, char **argv)
     playerSprite = debugred;
     gameLoop();
     /* cleanup */
-
-    /* XXX */
     deleteEntityPool(shotPatternTestPool);
-    // shotPatternTestPool = NULL;
     deleteEntityBehaviourManager(shotBeh);
-
-    /* XXX */
     deleteKinematicsManager(testKinematics);
     deleteAssetTable(spriteTest);
     deleteAssetTable(animTab);
@@ -400,6 +395,8 @@ main(int argc, char **argv)
     deleteEntityBehaviourManager(testBeh);
     deleteEventManager(onCollisionTestEvent);
     deleteCircCollider(testCollider);
+    printDebugStatus();
+
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

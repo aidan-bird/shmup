@@ -4,8 +4,7 @@
 #include "./kinematics.h"
 #include "./utils.h"
 #include "./event.h"
-
-#define N_FLOATS 6
+#include "./debug.h"
 
 static void
 onSpawnEvent_KinematicsManager(const EntityPool *caller,
@@ -30,8 +29,9 @@ newKinematicsManager(EntityPool *pool)
     KinematicsManager *ret;
 
     n = pool->count;
-    vectorSize = N_FLOATS * sizeof(float);
-    ret = malloc(sizeof(KinematicsManager) + n * vectorSize);
+    vectorSize = sizeof(KinematicsManager) + n * (6 * sizeof(float)
+        + sizeof(uint8_t));
+    ret = malloc(vectorSize);
     if (!ret)
         goto error1;
     ret->pool = pool;
@@ -46,6 +46,7 @@ newKinematicsManager(EntityPool *pool)
         (OnEventFunc)onSpawnEvent_KinematicsManager,
         "onSpawnEvent_KinematicsManager"))
         goto error2;
+    spawnedObjectsCount++;
     return ret;
 error2:;
     free(ret);
@@ -69,7 +70,7 @@ updateKinematicsManager(KinematicsManager *mgr)
     size_t j;
     EntityPoolIndexList list;
 
-    list = getEntityPoolActiveIndexList(mgr->pool);
+    list = getEntityPoolIsInitializedIndexList(mgr->pool);
     for (size_t i = 0; i < list.n; i++) {
         j = list.keys[i];
         mgr->speed[j] += mgr->accel[j];
@@ -101,6 +102,9 @@ updateKinematicsManager(KinematicsManager *mgr)
 void
 deleteKinematicsManager(KinematicsManager *mgr)
 {
+    if (!mgr)
+        return;
+    despawnedObjectsCount++;
     free(mgr);
 }
 

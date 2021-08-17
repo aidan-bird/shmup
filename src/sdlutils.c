@@ -2,6 +2,7 @@
 
 #include "./sdlutils.h"
 #include "./utils.h"
+#include "./debug.h"
 
 #define MAX_RADIUS (1 << 8)
 

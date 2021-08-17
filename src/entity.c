@@ -4,6 +4,8 @@
 #include "./config.h"
 #include "./assets.h"
 #include "./content.h"
+#include "./utils.h"
+#include "./debug.h"
 
 EntityPool playerBullets = newDebugEntityPool(POOL_SIZE);
 EntityPool enemyBullets = newDebugEntityPool(POOL_SIZE);
@@ -46,6 +48,7 @@ newEntityPool(size_t n)
     ret->isInitializedIndexMap = (uint16_t *)((uint8_t *)ret->isInitialized
         + n * sizeof(uint8_t));
     ret->onSpawnEntityEvent = NULL;
+    spawnedObjectsCount++;
     return ret;
 error1:;
     return NULL;
@@ -66,9 +69,9 @@ deleteEntityPool(EntityPool *pool)
 {
     if (!pool)
         return;
-    if (pool->onSpawnEntityEvent)
-        deleteEventManager(pool->onSpawnEntityEvent);
+    deleteEventManager(pool->onSpawnEntityEvent);
     free(pool);
+    despawnedObjectsCount++;
 }
 
 /*

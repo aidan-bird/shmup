@@ -5,6 +5,8 @@
 #include "./entity.h"
 #include "./assets.h"
 #include "./animation.h"
+#include "./utils.h"
+#include "./debug.h"
 
 /*
  * REQUIRES
@@ -43,7 +45,7 @@ setAnimation(Animator *animator, uint16_t entityKey,
  * returns NULL on error.
  */
 Animator *
-newAnimator(const EntityPool *pool, AssetTable *assetTab)
+newAnimator(EntityPool *pool, AssetTable *assetTab)
 {
     Animator *ret;
     size_t vectorSize;
@@ -56,11 +58,13 @@ newAnimator(const EntityPool *pool, AssetTable *assetTab)
     if (!ret)
         return NULL;
     ret->assetTab = assetTab;
+    ret->pool = pool;
     ret->animKeys = (uint8_t *)ret + sizeof(Animator);
     ret->frames = (uint8_t *)ret->animKeys + sizeof(uint8_t) * n;
     ret->selectors = (uint8_t *)ret->frames + sizeof(uint8_t) * n;
     ret->delays = (uint16_t *)((uint8_t *)ret->selectors
         + sizeof(uint8_t) * n);
+    spawnedObjectsCount++;
     return ret;
 }
 
@@ -77,6 +81,9 @@ newAnimator(const EntityPool *pool, AssetTable *assetTab)
 void
 deleteAnimator(Animator *animator)
 {
+    if (!animator)
+        return;
+    despawnedObjectsCount++;
     free(animator);
 }
 

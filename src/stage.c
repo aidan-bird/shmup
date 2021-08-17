@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "./stage.h"
+#include "./debug.h"
 
 int
 stageDelayFunc(Stage *stg)

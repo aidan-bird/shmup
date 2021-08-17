@@ -109,5 +109,7 @@ void deleteEntityBehaviourManager(EntityBehaviourManager *mgr);
 void updateEntityBehaviourManager(EntityBehaviourManager *mgr);
 void setBehaviour(EntityBehaviourManager *mgr, const BehaviourArgs *args, 
     BehaviourKey behaviourKey, uint16_t entityKey);
+EntityBehaviourManager *newEntityBehaviourManager(EntityPool *,
+    SubsystemsList *);
 
 #endif
