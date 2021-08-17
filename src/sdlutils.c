@@ -136,9 +136,9 @@ drawCircles(SDL_Renderer *renderer, const int *x, const int *y, int r,
     }
     lastPointCount = l;
 draw:;
-    for (int i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
         memcpy(pointsWrite, points, sizeof(SDL_Point) * lastPointCount);
-        for (int j = 0; j < lastPointCount; j++) {
+        for (size_t j = 0; j < lastPointCount; j++) {
             pointsWrite[j].x += x[i];
             pointsWrite[j].y += y[i];
         }

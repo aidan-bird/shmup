@@ -107,23 +107,15 @@ updateGame()
     playerY += playerVelocityY;
 
     /* update entity pools */
-    /* XXX not needed */
-    updateEntityPool(&playerBullets);
-
     /* XXX testing shot patterns */
-    updateEntityPool(shotPatternTestPool);
-
     updateEntityBehaviourManager(testBeh);
-
     updateEntityBehaviourManager(shotBeh);
-
-
     updateKinematicsManager(testKinematics);
     /* XXX testing the collision detection system + the event system */
     colliderKey = testCircCollider(playerX, playerY, 32, testCollider);
     if (colliderKey >= 0) {
         /* raise onCollision Event */
-        unsigned short j;
+        uint16_t j;
 
         j = colliderKey;
         raiseEvent(onCollisionTestEvent, &j);
@@ -187,13 +179,13 @@ termhandler(int signum)
 void
 gameLoop()
 {
-    int frames;
-    int ticks;
-    int lastTime;
-    int skipedFrames;
+    uint32_t frames;
+    uint32_t ticks;
+    uint32_t lastTime;
+    uint32_t skipedFrames;
 #if LIMIT_FPS == TRUE
-    int updateStartTime;
-    int updateEndTime;
+    uint32_t updateStartTime;
+    uint32_t updateEndTime;
 #endif
 
     frames = 0;
@@ -335,8 +327,8 @@ main(int argc, char **argv)
         testCollider, testKinematics);
 
     /* XXX spawn a test entity */
-    unsigned short key1;
-    unsigned short key2;
+    uint16_t key1;
+    uint16_t key2;
     {
         BehaviourArgs tmp;
 
@@ -363,7 +355,7 @@ main(int argc, char **argv)
         testCollider, testKinematics);
     /* XXX test spawning a shot pattern */
     {
-        unsigned short key;
+        uint16_t key;
         BehaviourArgs tmp;
 
         tmp = (BehaviourArgs) {
@@ -383,8 +375,8 @@ main(int argc, char **argv)
 
     onCollisionTestEvent = newEventManager(NULL, "onCollisionTestEvent");
     subscribeToEventManager(onCollisionTestEvent, testBeh,
-            onCollisionTestEvent_EntityBehaviourManager,
-            "onCollisionTestEvent_EntityBehaviourManager");
+        (OnEventFunc)onCollisionTestEvent_EntityBehaviourManager,
+        "onCollisionTestEvent_EntityBehaviourManager");
     updateActiveIndexMap(&playerBullets);
 
     /* start game */

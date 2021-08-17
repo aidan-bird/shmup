@@ -27,21 +27,24 @@ newEntityPool(size_t n)
     size_t vectorSize;
     EntityPool *ret;
     
-    vectorSize = sizeof(EntityPool) + n * (2 * sizeof(char) 
-        + 2 * sizeof(unsigned short) + sizeof(unsigned) + 2 * sizeof(float));
+    vectorSize = sizeof(EntityPool) + n * (2 * sizeof(uint8_t) 
+        + 2 * sizeof(uint16_t) + sizeof(uint32_t) + 2 * sizeof(float));
     ret = malloc(vectorSize);
     if (!ret)
         goto error1;
     ret->next = 0;
     ret->activeCount = 0;
     ret->count = n;
-    ret->isActive = (void *)ret + sizeof(EntityPool);
-    ret->activeIndexMap = (void *)ret->isActive + n * sizeof(char);
-    ret->flags = (void *)ret->activeIndexMap + n * sizeof(unsigned short);
-    ret->x = (void *)ret->flags + n * sizeof(unsigned);
-    ret->y = (void *)ret->x + n * sizeof(float);
-    ret->isInitialized = (void *)ret->y + n * sizeof(float);
-    ret->isInitializedIndexMap = (void *)ret->isInitialized + n * sizeof(char);
+    ret->isActive = (uint8_t *)ret + sizeof(EntityPool);
+    ret->activeIndexMap = (uint16_t *)((uint8_t *)ret->isActive
+        + n * sizeof(uint8_t));
+    ret->flags = (uint32_t *)((uint8_t *)ret->activeIndexMap
+        + n * sizeof(uint16_t));
+    ret->x = (float *)((uint8_t *)ret->flags + n * sizeof(uint32_t));
+    ret->y = (float *)((uint8_t *)ret->x + n * sizeof(float));
+    ret->isInitialized = (uint8_t *)((uint8_t *)ret->y + n * sizeof(float));
+    ret->isInitializedIndexMap = (uint16_t *)((uint8_t *)ret->isInitialized
+        + n * sizeof(uint8_t));
     ret->onSpawnEntityEvent = NULL;
     return ret;
 error1:;
@@ -95,30 +98,6 @@ addOnSpawnEntityEventManager(EntityPool *pool)
  * none
  *
  * MODIFIES
- * none
- *
- * EFFECTS
- * creates a new EntityPoolRef which is associated with pool.
- */
-EntityPoolRef
-getEntityPoolRef(const EntityPool *pool)
-{
-    return (EntityPoolRef) {
-        .count = pool->count, 
-        .activeCount = &pool->activeCount,
-        .isActive = pool->isActive,
-        .activeIndexMap = pool->activeIndexMap,
-        .x = pool->x,
-        .y = pool->y,
-        .pool = pool,
-    };
-}
-
-/*
- * REQUIRES
- * none
- *
- * MODIFIES
  * pool
  *
  * EFFECTS
@@ -158,10 +137,10 @@ updateActiveIndexMap(EntityPool *pool)
  * marks an entity as spawned, returns this entity's key.
  * If pool is saturated then the key of an active entity may be returned. 
  */
-unsigned short
+uint16_t
 spawnEntity(EntityPool *pool)
 {
-    unsigned short ret;
+    uint16_t ret;
 
     ret = pool->next;
     pool->isActive[ret] = 1;
@@ -190,48 +169,13 @@ spawnEntity(EntityPool *pool)
  * marks the entity identified by key as despawned.
  */
 void
-despawnEntity(EntityPool *pool, unsigned short key)
+despawnEntity(EntityPool *pool, uint16_t key)
 {
     if (pool->isActive[key]) {
         pool->isActiveIndexMapDirty = 1;
         pool->isActive[key] = 0;
         pool->activeCount--;
     }
-}
-
-/*
- * REQUIRES
- *
- * MODIFIES
- *
- * EFFECTS
- *
- */
-void
-updateEntityPosition(EntityPool *pool)
-{
-
-}
-
-/*
- * REQUIRES
- *
- * MODIFIES
- *
- * EFFECTS
- *
- */
-void
-updateEntityPool(EntityPool *pool)
-{
-    updateActiveIndexMap(pool);
-    /* update position */
-
-    /* do collision detection */
-
-    /* set events flags */
-
-    /* update behavior */
 }
 
 EntityPoolIndexList

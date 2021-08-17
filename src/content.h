@@ -1,12 +1,7 @@
 #ifndef CONTENT_H
 #define CONTENT_H
 
-#include <stddef.h>
-
 #include "assets.h"
-
-typedef enum SpriteAssetKeys SpriteAssetKeys;
-typedef enum AnimAssetKeys AnimAssetKeys;
 
 enum SpriteAssetKeys
 {
@@ -19,7 +14,10 @@ enum AnimAssetKeys
     debuganim2,
 };
 
-const extern AssetDefTab spritesheet;
-const extern AssetDefTab animSpriteSheet;
+typedef enum SpriteAssetKeys SpriteAssetKeys;
+typedef enum AnimAssetKeys AnimAssetKeys;
+
+extern AssetDefTab spritesheet;
+extern AssetDefTab animSpriteSheet;
 
 #endif

@@ -37,16 +37,17 @@
  * returns NULL on error.
  */
 CircleCollider *
-newCircCollider(const EntityPool *pool)
+newCircCollider(EntityPool *pool)
 {
+    size_t vectorSize;
     CircleCollider *ret;
 
-    ret = malloc(sizeof(CircleCollider) + sizeof(unsigned char) * pool->count);
+    vectorSize = sizeof(CircleCollider) + sizeof(uint8_t) * pool->count;
+    ret = malloc(vectorSize);
     if (!ret)
         return NULL;
-    ret->poolRef = getEntityPoolRef(pool);
-    /* XXX void pointer arithmetic is not portable */
-    ret->radius = (void *)ret + sizeof(CircleCollider);
+    ret->pool = pool;
+    ret->radius = (uint8_t *)ret + sizeof(CircleCollider);
     return ret;
 }
 
@@ -87,20 +88,21 @@ deleteCircCollider(CircleCollider *collider)
  * circle.
  * returns a negative number if no collisions occurred.
  */
-short
+uint32_t
 testCircCollider(float x, float y, float r, const CircleCollider *collider)
 {
     size_t j;
     float diffX;
     float diffY;
     float totalRadius;
+    EntityPoolIndexList list;
 
-    for (int i = 0; i < *collider->poolRef.activeCount; i++) {
+    list = getEntityPoolIsInitializedIndexList(collider->pool);
+    for (size_t i = 0; i < list.n; i++) {
         /* (x2 - x1)^2 + (y2 - y1)^2 <= (r1 + r2)^2 ---> HIT */
-        /* XXX use get active index func */
-        j = collider->poolRef.activeIndexMap[i];
-        diffX = SQUARE(x - collider->poolRef.x[j]);
-        diffY = SQUARE(y - collider->poolRef.y[j]);
+        j = list.keys[i];
+        diffX = SQUARE(x - collider->pool->x[j]);
+        diffY = SQUARE(y - collider->pool->y[j]);
         totalRadius = SQUARE(r + collider->radius[j]);
         if (diffX + diffY <= totalRadius) {
             puts("circle collision detected!");
@@ -111,16 +113,15 @@ testCircCollider(float x, float y, float r, const CircleCollider *collider)
 }
 
 void
-drawCircCollider(SDL_Renderer *renderer, const CircleCollider *collider)
+drawCircCollider(SDL_Renderer *renderer, CircleCollider *collider)
 {
     size_t j;
     EntityPoolIndexList list;
 
-    // list = getEntityPoolActiveIndexList(collider->poolRef.pool);
-    list = getEntityPoolIsInitializedIndexList(collider->poolRef.pool);
-    for (int i = 0; i < list.n; i++) {
+    list = getEntityPoolIsInitializedIndexList(collider->pool);
+    for (size_t i = 0; i < list.n; i++) {
         j = list.keys[i];
-        drawCircle(renderer, collider->poolRef.x[j], collider->poolRef.y[j],
+        drawCircle(renderer, collider->pool->x[j], collider->pool->y[j],
             collider->radius[j]);
     }
 }

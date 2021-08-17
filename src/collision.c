@@ -17,7 +17,7 @@
  * returns non-zero on error.
  */
 int
-setCollider(void *collider, const ColliderDef *def, unsigned short entityKey)
+setCollider(void *collider, const ColliderDef *def, uint16_t entityKey)
 {
     switch (def->type) {
         case circle:

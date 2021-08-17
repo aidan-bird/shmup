@@ -2,6 +2,7 @@
 #define CIRCLE_COLLISION_H
 
 #include <SDL.h>
+#include <stdint.h>
 
 #include "./entity.h"
 
@@ -9,14 +10,14 @@ typedef struct CircleCollider CircleCollider;
 
 struct CircleCollider
 {
-    EntityPoolRef poolRef;
-    unsigned char *radius;
+    EntityPool *pool;
+    uint8_t *radius;
 };
 
-CircleCollider *newCircCollider(const EntityPool *pool);
+CircleCollider *newCircCollider(EntityPool *pool);
 void deleteCircCollider(CircleCollider *collider);
-short testCircCollider(float x, float y, float r, 
+uint32_t testCircCollider(float x, float y, float r,
     const CircleCollider *collider);
-void drawCircCollider(SDL_Renderer *renderer, const CircleCollider *collider);
+void drawCircCollider(SDL_Renderer *renderer, CircleCollider *collider);
 
 #endif

@@ -17,8 +17,8 @@
  * sets an entity to use the animation identified by animKey.
  */
 void
-setAnimation(Animator *animator, unsigned short entityKey,
-    unsigned short animKey, unsigned char selector, unsigned char initialFrame)
+setAnimation(Animator *animator, uint16_t entityKey,
+    uint16_t animKey, uint8_t selector, uint8_t initialFrame)
 {
     const struct AssetDefAnimation *animDef;
 
@@ -43,24 +43,24 @@ setAnimation(Animator *animator, unsigned short entityKey,
  * returns NULL on error.
  */
 Animator *
-newAnimator(const EntityPool *pool, const AssetTable *assetTab)
+newAnimator(const EntityPool *pool, AssetTable *assetTab)
 {
     Animator *ret;
     size_t vectorSize;
     size_t n;
 
     n = pool->count;
-    vectorSize = 3 * sizeof(unsigned char) + sizeof(unsigned short);
-    ret = malloc(sizeof(Animator) + vectorSize * n);
+    vectorSize = sizeof(Animator) + n * (3 * sizeof(uint8_t)
+        + sizeof(uint16_t));
+    ret = malloc(vectorSize);
     if (!ret)
         return NULL;
     ret->assetTab = assetTab;
-    ret->poolRef = getEntityPoolRef(pool);
-    /* XXX void pointer arithmetic is not portable */
     ret->animKeys = (uint8_t *)ret + sizeof(Animator);
-    ret->frames = (uint8_t *)ret->animKeys + sizeof(unsigned char) * n;
-    ret->selectors = (uint8_t *)ret->frames + sizeof(unsigned char) * n;
-    ret->delays = (uint8_t *)ret->selectors + sizeof(unsigned char) * n;
+    ret->frames = (uint8_t *)ret->animKeys + sizeof(uint8_t) * n;
+    ret->selectors = (uint8_t *)ret->frames + sizeof(uint8_t) * n;
+    ret->delays = (uint16_t *)((uint8_t *)ret->selectors
+        + sizeof(uint8_t) * n);
     return ret;
 }
 
@@ -95,9 +95,12 @@ updateAnimator(Animator *animator)
 {
     size_t j;
     const struct AssetDefAnimation *animDef;
+    EntityPoolIndexList list;
 
-    for (int i = 0; i < *animator->poolRef.activeCount; i++) {
-        j = animator->poolRef.activeIndexMap[i];
+    list = getEntityPoolIsInitializedIndexList(animator->pool);
+    for (size_t i = 0; i < list.n; i++) {
+        j = list.keys[i];
+
         if (animator->delays[j]) {
             animator->delays[j]--;
             continue;
@@ -107,16 +110,19 @@ updateAnimator(Animator *animator)
         animator->frames[j] = animator->frames[j] + 1 < animDef->cols 
             ? animator->frames[j] + 1 : 0;
         animator->delays[j] = animDef->delays[animator->selectors[j]][animator->frames[j]];
+
     }
 }
 
 /*
  * REQUIRES
+ * none
  *
  * MODIFIES
+ * renderer
  *
  * EFFECTS
- *
+ * draws animated entities
  */
 void
 drawAnimator(SDL_Renderer *renderer, const Animator *animator)
@@ -124,11 +130,11 @@ drawAnimator(SDL_Renderer *renderer, const Animator *animator)
     size_t j;
     EntityPoolIndexList list;
 
-    list = getEntityPoolIsInitializedIndexList(animator->poolRef.pool);
-    for (int i = 0; i < list.n; i++) {
+    list = getEntityPoolIsInitializedIndexList(animator->pool);
+    for (size_t i = 0; i < list.n; i++) {
         j = list.keys[i];
         drawSprite(renderer, animator->assetTab, animator->animKeys[j],
-            animator->poolRef.x[j], animator->poolRef.y[j],
+            animator->pool->x[j], animator->pool->y[j],
             animator->selectors[j], animator->frames[j]);
     }
 }

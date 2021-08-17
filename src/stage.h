@@ -1,6 +1,8 @@
 #ifndef STAGE_H
 #define STAGE_H
 
+#include <stdint.h>
+
 typedef struct Stage Stage;
 typedef struct StageDef StageDef;
 typedef int (*StageEventFunc)(Stage *stg);
@@ -14,7 +16,7 @@ typedef struct StageEventDef StageEventDef;
 union StageEventData
 {
     struct Delay {
-        unsigned int ticks;
+        uint32_t ticks;
     } delay;
 };
 
@@ -45,7 +47,7 @@ struct Stage
 {
     const StageDef *stgDef;
     size_t i;
-    unsigned int ticks;
+    uint32_t ticks;
     StageEventData eventState;
 };
 

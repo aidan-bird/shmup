@@ -20,7 +20,7 @@
  * returns zero otherwise.
  */
 static int
-statAssetKey(const AssetTable *tab, unsigned assetKey)
+statAssetKey(const AssetTable *tab, uint32_t assetKey)
 {
     if (assetKey >= tab->count) {
         puts("statAssetKey: key is INVALID and OUT OF BOUNDS");
@@ -56,9 +56,9 @@ static void
 setupLoaderStatusTable(AssetLoaderStatus* tab, size_t n,
     const AssetDefTab *defTab)
 {
-    for (int i = 0; i < n; i++)
+    for (size_t i = 0; i < n; i++)
         tab[i] = invalid;
-    for (int i = 0; i < defTab->count; i++)
+    for (size_t i = 0; i < defTab->count; i++)
         tab[defTab->keys[i]] = not_loaded;
 }
 
@@ -74,7 +74,7 @@ setupLoaderStatusTable(AssetLoaderStatus* tab, size_t n,
  * returns zero otherwise.
  */
 int
-isAssetLoaded(const AssetTable *tab, unsigned assetKey)
+isAssetLoaded(const AssetTable *tab, uint32_t assetKey)
 {
     return statAssetKey(tab, assetKey);
     /* TODO check with no print messages */
@@ -94,9 +94,9 @@ isAssetLoaded(const AssetTable *tab, unsigned assetKey)
  * returns non-zero on error.
  */
 int
-loadAllFromAssetDefTab(AssetTable *tab, const AssetDefTab *defTab)
+loadAllFromAssetDefTab(AssetTable *tab, AssetDefTab *defTab)
 {
-    const void *tmp;
+    void *tmp;
     size_t n;
     size_t maxKey;
     size_t assetSize;
@@ -108,7 +108,7 @@ loadAllFromAssetDefTab(AssetTable *tab, const AssetDefTab *defTab)
     n = defTab->count;
     /* get the max key */
     maxKey = defTab->keys[0];
-    for (int i = 1; i < n; i++) {
+    for (size_t i = 1; i < n; i++) {
         if (maxKey < defTab->keys[i])
             maxKey = defTab->keys[i];
     }
@@ -117,16 +117,16 @@ loadAllFromAssetDefTab(AssetTable *tab, const AssetDefTab *defTab)
     if (!(tab->assets = malloc(vectorSize * assetSize)))
         goto error1;
     /* construct loader status table */
-    /* XXX void pointer arithmetic is not portable */
-    tab->loaderStatus = (void *)tab->assets + sizeof(void *) * assetSize;
+    tab->loaderStatus = (AssetLoaderStatus *)((uint8_t *)tab->assets
+        + sizeof(void *) * assetSize);
     setupLoaderStatusTable(tab->loaderStatus, assetSize, defTab);
     /* load assets */
-    for (int i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
         j = defTab->keys[i];
-        printf("LOADING asset at index %d\n", i);
+        printf("LOADING asset at index %ld\n", i);
         tmp = tab->loader.load(&tab->loader, defTab->assetDefs[j].path);
         if (!tmp) {
-            printf("FAILED to laod asset at index %d\n", i);
+            printf("FAILED to laod asset at index %ld\n", i);
             tab->count = i - 1;
             goto error2;
         }
@@ -162,7 +162,7 @@ destroySpriteAssetTable(AssetTable *tab)
     printf("DELETING asset table: %s\n", tab->assetDefTable->label);
     if (!tab)
         return;
-    for (int i = 0; i < tab->count; i++) {
+    for (size_t i = 0; i < tab->count; i++) {
         next = ((SDL_Texture *)tab->assets[tab->assetDefTable->keys[i]]);
         if (next)
             SDL_DestroyTexture(next);
@@ -182,10 +182,10 @@ destroySpriteAssetTable(AssetTable *tab)
  * returns a loaded-in sprite as a void*.
  * returns NULL on error.
  */
-const void*
+void *
 spriteLoaderFunc(AssetLoader *loader, const char *path)
 {
-    return (const void *)loadImage(loader->args.sprite.renderer, path);
+    return (void *)loadImage(loader->args.sprite.renderer, path);
 }
 
 /*
@@ -199,8 +199,8 @@ spriteLoaderFunc(AssetLoader *loader, const char *path)
  * draws a sprite from a sprite sheet and center it at (x,y). 
  */
 void
-drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey, 
-    float x, float y, unsigned char row, unsigned char col)
+drawSprite(SDL_Renderer *renderer, AssetTable *spriteTab, int assetKey, 
+    float x, float y, uint8_t row, uint8_t col)
 {
     int spriteWidth;
     int spriteHeight;
@@ -245,7 +245,7 @@ drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey,
  * returns NULL on error
  */
 AssetTable *
-loadSpriteSheet(const AssetDefTab *spriteSheetDef, SDL_Renderer *renderer)
+loadSpriteSheet(AssetDefTab *spriteSheetDef, SDL_Renderer *renderer)
 {
     AssetTable *ret;
 
@@ -259,7 +259,8 @@ loadSpriteSheet(const AssetDefTab *spriteSheetDef, SDL_Renderer *renderer)
                 .args.sprite = {
                     .renderer = renderer,
                 },
-            }
+            },
+        .assetDefTable = NULL,
     };
     if (loadAllFromAssetDefTab(ret, spriteSheetDef))
         goto error2;

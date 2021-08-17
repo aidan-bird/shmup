@@ -1,6 +1,8 @@
 #ifndef SDLUTILS_H
 #define SDLUTILS_H
 
+#include <stdint.h>
+
 #include <SDL.h>
 #include <stddef.h>
 

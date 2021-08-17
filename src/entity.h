@@ -2,6 +2,7 @@
 #define ENTITY_H
 
 #include <SDL.h>
+#include <stdint.h>
 
 #include "./assets.h"
 #include "./event.h"
@@ -24,21 +25,22 @@
 
 /* use this to define a new EntityPool */
 #define newDebugEntityPool(SIZE) \
-(EntityPool) { \
+{ \
     .next = 0, \
     .activeCount = 0, \
     .isInitializedIndexMapDirty = 0, \
     .isInitializedCount = 0, \
     .count = (SIZE), \
-    .isActive = (char[(SIZE)]){}, \
-    .activeIndexMap = (unsigned short[(SIZE)]){}, \
-    .flags = (unsigned[(SIZE)]){}, \
-    .x = (float[(SIZE)]){}, \
-    .y = (float[(SIZE)]){}, \
-    .isInitialized = (char[(SIZE)]){}, \
-    .isInitializedIndexMap = (unsigned short[(SIZE)]){}, \
+    .isActive = (uint8_t[(SIZE)]){0}, \
+    .activeIndexMap = (uint16_t[(SIZE)]){0}, \
+    .flags = (uint32_t[(SIZE)]){0}, \
+    .x = (float[(SIZE)]){0}, \
+    .y = (float[(SIZE)]){0}, \
+    .isInitialized = (uint8_t[(SIZE)]){0}, \
+    .isInitializedIndexMap = (uint16_t[(SIZE)]){0}, \
     .onSpawnEntityEvent = NULL, \
-};
+}
+
 
 typedef struct EntityPool EntityPool;
 typedef struct EntityPoolRef EntityPoolRef;
@@ -47,20 +49,19 @@ typedef struct EntityPoolIndexList EntityPoolIndexList;
 struct EntityPoolIndexList
 {
     size_t n;
-    const unsigned short *keys;
+    const uint16_t *keys;
 };
 
 int addOnSpawnEntityEventManager(EntityPool *pool);
 void updateActiveIndexMap(EntityPool *pool);
-void updateEntityPool(EntityPool *pool);
-void updateEntityPosition(EntityPool *pool);
-void despawnEntity(EntityPool *pool, unsigned short key);
+void despawnEntity(EntityPool *pool, uint16_t key);
 void invalidateEntityPool(EntityPool *pool);
-unsigned short spawnEntity(EntityPool *pool);
+uint16_t spawnEntity(EntityPool *pool);
 EntityPoolIndexList getEntityPoolActiveIndexList(EntityPool *pool);
 EntityPool *newEntityPool(size_t n);
 size_t updateIsInitializedIndexMap(EntityPool *pool);
 EntityPoolIndexList getEntityPoolIsInitializedIndexList(EntityPool *pool);
+void deleteEntityPool(EntityPool *pool);
 
 /*
  * Represents a fixed-length pool of objects.
@@ -74,37 +75,18 @@ struct EntityPool
     size_t next;
     size_t activeCount;
     size_t count;
-    char isInitializedIndexMapDirty;
+    uint8_t isInitializedIndexMapDirty;
     size_t isInitializedCount;
-    char *isActive;
-    unsigned short *activeIndexMap;
-    unsigned *flags;
+    uint8_t *isActive;
+    uint16_t *activeIndexMap;
+    uint32_t *flags;
     float *x;
     float *y;
     EventManager *onSpawnEntityEvent;
-    char isActiveIndexMapDirty;
-    char *isInitialized;
-    unsigned short *isInitializedIndexMap;
+    uint8_t isActiveIndexMapDirty;
+    uint8_t *isInitialized;
+    uint16_t *isInitializedIndexMap;
 };
-
-/* 
- * Allows subsystems to be associated with an entity pool instance.
- * This struct provides these subsystems with limited access to some fields 
- * of the associated entity pool. This struct should not outlive the associated 
- * entity pool.
- */
-struct EntityPoolRef
-{
-    size_t count;
-    const size_t *activeCount;
-    const char *isActive;
-    const unsigned short *activeIndexMap;
-    float *x;
-    float *y;
-    const EntityPool *pool;
-};
-
-EntityPoolRef getEntityPoolRef(const EntityPool *pool);
 
 extern EntityPool playerBullets;
 extern EntityPool enemyBullets;

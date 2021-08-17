@@ -1,6 +1,8 @@
 #ifndef EVENT_H
 #define EVENT_H
 
+#include <stdint.h>
+
 #include "../alib/src/array.h"
 
 typedef struct EventManager EventManager;

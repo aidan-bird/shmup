@@ -43,7 +43,7 @@ raiseEvent(const EventManager *mgr, const void *args)
         printf("EVENT RAISED: %s\n", mgr->label);
     else
         puts("ANONYMOUS EVENT RAISED");
-    for (int i = 0; i < mgr->subscribers->count; i++) {
+    for (size_t i = 0; i < mgr->subscribers->count; i++) {
         sub = (Subscriber *)getElementArray(mgr->subscribers, i);
         printf("Notifying: %s\n", sub->label == NULL ? "ANONYMOUS" : sub->label);
         sub->eventFunc(mgr->parent, sub->subscriber, args);

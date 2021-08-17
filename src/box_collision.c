@@ -5,21 +5,20 @@
 #include "./entity.h"
 
 BoxCollider *
-newBoxCollider(const EntityPool *pool)
+newBoxCollider(EntityPool *pool)
 {
     size_t vecSize;
     size_t n;
     BoxCollider *ret;
 
     n = pool->count;
-    vecSize = 2 * sizeof(unsigned char);
+    vecSize = 2 * sizeof(uint8_t);
     ret = malloc(sizeof(BoxCollider) + vecSize * n);
     if (!ret)
         return NULL;
-    ret->poolRef = getEntityPoolRef(pool);
-    /* XXX void pointer arithmetic is not portable */
-    ret->width = (void *)ret + sizeof(BoxCollider);
-    ret->height = (void *)ret->width + n * sizeof(unsigned char);
+    ret->pool = pool;
+    ret->width = (uint8_t *)ret + sizeof(BoxCollider);
+    ret->height = (uint8_t *)ret->width + n * sizeof(uint8_t);
     return ret;
 }
 
@@ -29,9 +28,8 @@ deleteBoxCollider(BoxCollider *collider)
     free(collider);
 }
 
-short
-testBoxCollider(float x, float y, unsigned width, unsigned height,
-    const BoxCollider *collider)
+int32_t
+testBoxCollider(float x, float y, const BoxCollider *collider)
 {
     size_t j;
     float x2;
@@ -40,11 +38,11 @@ testBoxCollider(float x, float y, unsigned width, unsigned height,
     float height2;
     EntityPoolIndexList list;
 
-    list = getEntityPoolActiveIndexList(collider->poolRef.pool);
-    for (int i = 0; i < list.n; i++) {
+    list = getEntityPoolActiveIndexList(collider->pool);
+    for (size_t i = 0; i < list.n; i++) {
         j = list.keys[i];
-        x2 = collider->poolRef.x[j];
-        y2 = collider->poolRef.y[j];
+        x2 = collider->pool->x[j];
+        y2 = collider->pool->y[j];
         width2 = collider->width[j];
         height2 = collider->height[j];
         if (x >= x2 && x <= x2 + width2 && y >= y2 && y <= y2 + height2) {
@@ -62,12 +60,12 @@ drawBoxCollider(SDL_Renderer *renderer, const BoxCollider *collider)
     size_t j;
     EntityPoolIndexList list;
 
-    list = getEntityPoolActiveIndexList(collider->poolRef.pool);
-    for (int i = 0; i < list.n; i++) {
+    list = getEntityPoolActiveIndexList(collider->pool);
+    for (size_t i = 0; i < list.n; i++) {
         j = list.keys[i];
         rect = (SDL_Rect) {
-            .x = collider->poolRef.x[j],
-            .y = collider->poolRef.y[j],
+            .x = collider->pool->x[j],
+            .y = collider->pool->y[j],
             .w = collider->width[j],
             .h = collider->height[j],
         };

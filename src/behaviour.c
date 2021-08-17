@@ -8,15 +8,15 @@
 #include "./kinematics.h"
 #include "./utils.h"
 
-typedef void (*BehaviourUpdateFunc)(EntityBehaviourManager *, unsigned short);
+typedef void (*BehaviourUpdateFunc)(EntityBehaviourManager *, uint16_t);
 
-static void debugbotBehaviourStart(EntityBehaviourManager *, unsigned short);
-static void debugbotBehaviourLoop(EntityBehaviourManager *, unsigned short);
-static void despawnSelfStart(EntityBehaviourManager *, unsigned short);
+static void debugbotBehaviourStart(EntityBehaviourManager *, uint16_t);
+static void debugbotBehaviourLoop(EntityBehaviourManager *, uint16_t);
+static void despawnSelfStart(EntityBehaviourManager *, uint16_t);
 static void simpleBulletBehaviourStart(EntityBehaviourManager *,
-    unsigned short);
-static void debugShotPatternStart(EntityBehaviourManager *, unsigned short);
-static void debugShotPatternLoop(EntityBehaviourManager *, unsigned short);
+    uint16_t);
+static void debugShotPatternStart(EntityBehaviourManager *, uint16_t);
+static void debugShotPatternLoop(EntityBehaviourManager *, uint16_t);
 
 EntityBehaviourManager *newEntityBehaviourManager(EntityPool *,
     SubsystemsList *);
@@ -50,7 +50,7 @@ static BehaviourUpdateFunc behaviourTab[] = {
  */
 void
 setBehaviour(EntityBehaviourManager *mgr, const BehaviourArgs *args, 
-    BehaviourKey behaviourKey, unsigned short entityKey)
+    BehaviourKey behaviourKey, uint16_t entityKey)
 {
     mgr->behaviourKey[entityKey] = behaviourKey;
     mgr->ticksDelta[entityKey] = 0;
@@ -97,7 +97,7 @@ newDebugEntityBehaviourManager(EntityPool *pool, Animator *animator,
  */
 void
 onSpawnEvent_EntityBehaviourManager(EntityPool *caller, 
-    EntityBehaviourManager *subscriber, const unsigned short *args)
+    EntityBehaviourManager *subscriber, const uint16_t *args)
 {
     subscriber->ticksAlive[*args] = 0;
 }
@@ -121,23 +121,26 @@ newEntityBehaviourManager(EntityPool *pool, SubsystemsList *subsystems)
     EntityBehaviourManager *ret;
 
     n = pool->count;
-    vectorSize = sizeof(unsigned char) + 2 * sizeof(unsigned short) 
-        + sizeof(unsigned) + sizeof(BehaviourState) + sizeof(BehaviourArgs);
+    vectorSize = sizeof(uint8_t) + 2 * sizeof(uint16_t) 
+        + sizeof(uint32_t) + sizeof(BehaviourState) + sizeof(BehaviourArgs);
     ret = malloc(sizeof(EntityBehaviourManager) + n * vectorSize);
     if (!ret)
         goto error1;
-    ret->poolRef = getEntityPoolRef(pool);
-    /* XXX void pointer arithmetic is not portable */
-    ret->behaviourKey = (void *)ret + sizeof(EntityBehaviourManager);
-    ret->ticksAlive = (void *)ret->behaviourKey + n * sizeof(unsigned char);
-    ret->state = (void *)ret->ticksAlive + n * sizeof(unsigned short);
-    ret->args = (void *)ret->state + n * sizeof(BehaviourState);
-    ret->ticksDelta = (void *)ret->args + n * sizeof(BehaviourArgs);
+    ret->pool = pool;
+    ret->behaviourKey = (uint8_t *)ret + sizeof(EntityBehaviourManager);
+    ret->ticksAlive = (uint16_t *)((uint8_t *)ret->behaviourKey
+        + n * sizeof(uint8_t));
+    ret->state = (BehaviourState *)((uint8_t *)ret->ticksAlive
+        + n * sizeof(uint16_t));
+    ret->args = (BehaviourArgs *)((uint8_t *)ret->state
+        + n * sizeof(BehaviourState));
+    ret->ticksDelta = (uint16_t *)((uint8_t *)ret->args
+        + n * sizeof(BehaviourArgs));
     if (subsystems)
         ret->subsystems = *subsystems;
     /* subscribe to onSpawnEntity Event*/
     if (subscribeToEventManager(pool->onSpawnEntityEvent, ret,
-        onSpawnEvent_EntityBehaviourManager,
+        (OnEventFunc)onSpawnEvent_EntityBehaviourManager,
         "onSpawnEvent_EntityBehaviourManager"))
         goto error2;
     return ret;
@@ -177,9 +180,11 @@ void
 updateEntityBehaviourManager(EntityBehaviourManager *mgr)
 {
     size_t j;
+    EntityPoolIndexList list;
 
-    for (int i = 0; i < *mgr->poolRef.activeCount; i++) {
-        j = mgr->poolRef.activeIndexMap[i];
+    list = getEntityPoolActiveIndexList(mgr->pool);
+    for (size_t i = 0; i < list.n; i++) {
+        j = list.keys[i];
         mgr->ticksAlive[j]++;
         if (mgr->behaviourKey[j] == no_behaviour)
             continue;
@@ -189,30 +194,30 @@ updateEntityBehaviourManager(EntityBehaviourManager *mgr)
 
 /* XXX sample code that demonstrates the behaviour system */
 static void
-debugbotBehaviourStart(EntityBehaviourManager *mgr, unsigned short entityKey)
+debugbotBehaviourStart(EntityBehaviourManager *mgr, uint16_t entityKey)
 {
     /* setup behaviour state */
     mgr->state[entityKey].debugbot.i = 0;
     /* set position */
-    mgr->poolRef.x[entityKey] = WIDTH / 2;
-    mgr->poolRef.y[entityKey] = HEIGHT / 2;
+    mgr->pool->x[entityKey] = WIDTH / 2;
+    mgr->pool->y[entityKey] = HEIGHT / 2;
     /* set collider */
     mgr->subsystems.debug.collider->radius[entityKey] = 32;
     /* set graphics/sprite */
     setAnimation(mgr->subsystems.debug.animator, entityKey, debuganim, 0, 0);
     /* TODO set events e.g., onCollideEvent */
     /* start looping behaviour */
-    raiseIsInitializedFlag(mgr->poolRef.pool, entityKey);
+    raiseIsInitializedFlag(mgr->pool, entityKey);
     setBehaviour(mgr, NULL, debugbotLoop, entityKey);
 }
 
 /* XXX sample code that demonstrates the behaviour system */
 /* XXX used for testing */
 static void
-debugbotBehaviourLoop(EntityBehaviourManager *mgr, unsigned short entityKey)
+debugbotBehaviourLoop(EntityBehaviourManager *mgr, uint16_t entityKey)
 {
     mgr->state[entityKey].debugbot.i++;
-    mgr->poolRef.x[entityKey]++;
+    mgr->pool->x[entityKey]++;
     //mgr->poolRef.y[entityKey] += mgr->state[entityKey].debugbot.i;
     if (mgr->ticksDelta[entityKey] > 120)
         setBehaviour(mgr, NULL, despawnSelf, entityKey);
@@ -220,15 +225,15 @@ debugbotBehaviourLoop(EntityBehaviourManager *mgr, unsigned short entityKey)
 
 /* XXX used for testing */
 static void
-despawnSelfStart(EntityBehaviourManager *mgr, unsigned short entityKey)
+despawnSelfStart(EntityBehaviourManager *mgr, uint16_t entityKey)
 {
-    despawnEntity(mgr->poolRef.pool, entityKey);
+    despawnEntity(mgr->pool, entityKey);
 }
 
 /* XXX used for testing */
 void
 onCollisionTestEvent_EntityBehaviourManager(void *nullptr,
-    EntityBehaviourManager *mgr, const unsigned short *key)
+    EntityBehaviourManager *mgr, const uint16_t *key)
 {
     mgr->behaviourKey[*key] = despawnSelf;
 }
@@ -236,15 +241,15 @@ onCollisionTestEvent_EntityBehaviourManager(void *nullptr,
 /* XXX */
 static void
 simpleBulletBehaviourStart(EntityBehaviourManager *mgr,
-    unsigned short entityKey)
+    uint16_t entityKey)
 {
     const struct SimpleBulletBehaviourArgs *args;
     KinematicsManager *kinMgr;
 
-    args = mgr->args + entityKey;
+    args = (struct SimpleBulletBehaviourArgs *)(mgr->args + entityKey);
     kinMgr = mgr->subsystems.debug.kinematics;
-    mgr->poolRef.x[entityKey] = args->startX;
-    mgr->poolRef.y[entityKey] = args->startY;
+    mgr->pool->x[entityKey] = args->startX;
+    mgr->pool->y[entityKey] = args->startY;
     mgr->subsystems.debug.collider->radius[entityKey] = args->radius;
     kinMgr->rot[entityKey] = args->rot;
     kinMgr->speed[entityKey] = args->speed;
@@ -252,7 +257,7 @@ simpleBulletBehaviourStart(EntityBehaviourManager *mgr,
     kinMgr->angularVelocity[entityKey] = 0;
     setAnimation(mgr->subsystems.debug.animator, entityKey, args->animKey, 0,
         0);
-    raiseIsInitializedFlag(mgr->poolRef.pool, entityKey);
+    raiseIsInitializedFlag(mgr->pool, entityKey);
     setBehaviour(mgr, NULL, no_behaviour, entityKey);
 }
 
@@ -267,20 +272,20 @@ simpleBulletBehaviourStart(EntityBehaviourManager *mgr,
  * de-spawn itself.
  */
 static void
-debugShotPatternStart(EntityBehaviourManager *mgr, unsigned short entityKey)
+debugShotPatternStart(EntityBehaviourManager *mgr, uint16_t entityKey)
 {
     const struct DebugShotPattern *args;
     struct DebugShotPatternState *state;
     float shotAngleOffset = PI_F / 12;
     float baseShotAngle;
 
-    state = mgr->state + entityKey;
-    args = mgr->args + entityKey;
+    state = (struct DebugShotPatternState *)mgr->state + entityKey;
+    args =  (const struct DebugShotPattern*)mgr->args + entityKey;
     baseShotAngle = atan2f(args->shooterPool->x[args->shooterKey] 
         - args->targetPool->x[args->targetKey],
         args->shooterPool->y[args->shooterKey] 
         - args->targetPool->y[args->targetKey]) - shotAngleOffset;
-    for (int i = 0; i < LEN(state->shotAngles); i++)
+    for (size_t i = 0; i < LEN(state->shotAngles); i++)
         state->shotAngles[i] = baseShotAngle + i * shotAngleOffset;
     state->burstsRemaining = 3;
     state->currentDelay = 0;
@@ -288,21 +293,21 @@ debugShotPatternStart(EntityBehaviourManager *mgr, unsigned short entityKey)
 }
 
 static void
-debugShotPatternLoop(EntityBehaviourManager *mgr, unsigned short entityKey)
+debugShotPatternLoop(EntityBehaviourManager *mgr, uint16_t entityKey)
 {
     BehaviourArgs spawnArgs;
     const struct DebugShotPattern *args;
     struct DebugShotPatternState *state;
-    unsigned short key;
+    uint16_t key;
 
-    state = mgr->state + entityKey;
+    state = (struct DebugShotPatternState *)(mgr->state + entityKey);
     if (!state->burstsRemaining)
         setBehaviour(mgr, NULL, despawnSelf, entityKey);
     if (state->currentDelay) {
         state->currentDelay--;
         return;
     }
-    args = mgr->args + entityKey;
+    args = (const struct DebugShotPattern *)(mgr->args + entityKey);
     spawnArgs = (BehaviourArgs) {
         .simpleBullet = {
             .startX = args->shooterPool->x[args->shooterKey],
@@ -312,9 +317,9 @@ debugShotPatternLoop(EntityBehaviourManager *mgr, unsigned short entityKey)
             .animKey = args->animKey,
         },
     };
-    for (int i = 0; i < LEN(state->shotAngles); i++) {
+    for (size_t i = 0; i < LEN(state->shotAngles); i++) {
         spawnArgs.simpleBullet.rot = state->shotAngles[i];
-        key = spawnEntity(args->ammoPoolBeh->poolRef.pool);
+        key = spawnEntity(args->ammoPoolBeh->pool);
         setBehaviour(args->ammoPoolBeh, &spawnArgs, simpleBulletStart, key);
     }
     state->burstsRemaining--;

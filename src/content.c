@@ -2,7 +2,7 @@
 #include "./content.h"
 #include "./assets.h"
 
-static const AssetDef spritesheetDefs[] = {
+static AssetDef spritesheetDefs[] = {
     [debugred] = {
         .key = debugred,
         .path = "./assets/sprites/debugred.png",
@@ -17,11 +17,11 @@ static const AssetDef spritesheetDefs[] = {
     },
 };
 
-static const int spritesheetKeys[] = {
+static size_t spritesheetKeys[] = {
     debugred,
 };
 
-const AssetDefTab spritesheet = {
+AssetDefTab spritesheet = {
     .label = "spritesheet",
     .count = LEN(spritesheetKeys),
     .keys = spritesheetKeys,
@@ -29,7 +29,7 @@ const AssetDefTab spritesheet = {
 };
 
 /* XXX testing the animation system */
-static const AssetDef animSpriteSheetDefs[] = {
+static AssetDef animSpriteSheetDefs[] = {
     [debuganim] = {
         .key = debuganim,
         .path = "./assets/sprites/debuganim.png",
@@ -39,8 +39,8 @@ static const AssetDef animSpriteSheetDefs[] = {
                 .cellHeight = 32,
                 .rows = 1,
                 .cols = 4,
-                .delays = (const unsigned short*[]) {
-                    (unsigned short[]){
+                .delays = (const uint16_t*[]) {
+                    (uint16_t[]){
                         2, 2, 2, 2
                     },
                 },
@@ -56,8 +56,8 @@ static const AssetDef animSpriteSheetDefs[] = {
                 .cellHeight = 32,
                 .rows = 1,
                 .cols = 4,
-                .delays = (const unsigned short*[]) {
-                    (unsigned short[]){
+                .delays = (const uint16_t*[]) {
+                    (uint16_t[]){
                         4, 4, 4, 4
                     },
                 },
@@ -67,13 +67,13 @@ static const AssetDef animSpriteSheetDefs[] = {
 };
 
 /* XXX testing the animation system */
-static const int animSpritesheetKeys[] = {
+static size_t animSpritesheetKeys[] = {
     debuganim,
     debuganim2,
 };
 
 /* XXX testing the animation system */
-const AssetDefTab animSpriteSheet = {
+AssetDefTab animSpriteSheet = {
     .label = "animation spritesheet",
     .count = LEN(animSpritesheetKeys),
     .keys = animSpritesheetKeys,

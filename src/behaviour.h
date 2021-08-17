@@ -1,15 +1,15 @@
 #ifndef BEHAVIOUR_H
 #define BEHAVIOUR_H
 
+#include <stdint.h>
+
 #include "./entity.h"
-#include "./collision.h"
 #include "./circle_collision.h"
 #include "./box_collision.h"
 #include "./animation.h"
 #include "./content.h"
 #include "./kinematics.h"
 
-typedef enum BehaviourKey BehaviourKey;
 typedef struct EntityBehaviourManager EntityBehaviourManager;
 typedef union BehaviourArgs BehaviourArgs;
 typedef union BehaviourState BehaviourState;
@@ -22,8 +22,8 @@ union BehaviourState
     } debugbot;
     struct DebugShotPatternState {
         float shotAngles[3];
-        unsigned char burstsRemaining;
-        unsigned char currentDelay;
+        uint8_t burstsRemaining;
+        uint8_t currentDelay;
     } debugShotPattern;
 };
 
@@ -59,15 +59,15 @@ union BehaviourArgs
         float startY;
         float rot;
         float speed;
-        unsigned char radius;
+        uint8_t radius;
         AnimAssetKeys animKey;
     } simpleBullet;
     struct DebugShotPattern {
-        unsigned char delayBetweenShots;
+        uint8_t delayBetweenShots;
         AnimAssetKeys animKey;
-        unsigned short targetKey;
+        uint16_t targetKey;
         const EntityPool *targetPool;
-        unsigned short shooterKey;
+        uint16_t shooterKey;
         const EntityPool *shooterPool;
         EntityBehaviourManager *ammoPoolBeh;
     } debugShotPattern;
@@ -75,10 +75,10 @@ union BehaviourArgs
 
 struct EntityBehaviourManager
 {
-    EntityPoolRef poolRef;
-    unsigned char *behaviourKey;
-    unsigned short *ticksAlive;
-    unsigned short *ticksDelta;
+    EntityPool *pool;
+    uint8_t *behaviourKey;
+    uint16_t *ticksAlive;
+    uint16_t *ticksDelta;
     BehaviourState *state;
     BehaviourArgs *args;
     SubsystemsList subsystems;
@@ -95,17 +95,19 @@ enum BehaviourKey
     debugShotPattern_Loop,
 };
 
+typedef enum BehaviourKey BehaviourKey;
+
 void onSpawnEvent_EntityBehaviourManager(EntityPool *caller, 
-    EntityBehaviourManager *subscriber, const unsigned short *args);
+    EntityBehaviourManager *subscriber, const uint16_t *args);
 /* XXX used for testing */
 void onCollisionTestEvent_EntityBehaviourManager(void *nullptr,
-    EntityBehaviourManager *mgr, const unsigned short *key);
+    EntityBehaviourManager *mgr, const uint16_t *key);
 EntityBehaviourManager *newDebugEntityBehaviourManager(EntityPool *pool,
     Animator *animator, CircleCollider *collider,
     KinematicsManager *kinematics);
 void deleteEntityBehaviourManager(EntityBehaviourManager *mgr);
 void updateEntityBehaviourManager(EntityBehaviourManager *mgr);
 void setBehaviour(EntityBehaviourManager *mgr, const BehaviourArgs *args, 
-    BehaviourKey behaviourKey, unsigned short entityKey);
+    BehaviourKey behaviourKey, uint16_t entityKey);
 
 #endif

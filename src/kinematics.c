@@ -9,7 +9,7 @@
 
 static void
 onSpawnEvent_KinematicsManager(const EntityPool *caller,
-    KinematicsManager *subscriber, const unsigned short *args);
+    KinematicsManager *subscriber, const uint16_t *args);
 
 /*
  * REQUIRES
@@ -34,17 +34,17 @@ newKinematicsManager(EntityPool *pool)
     ret = malloc(sizeof(KinematicsManager) + n * vectorSize);
     if (!ret)
         goto error1;
-    ret->poolRef = getEntityPoolRef(pool);
-    float **retFloats[] = {
-        &ret->speed, &ret->rot, &ret->accel, &ret->angularVelocity,
-        &ret->rotCacheX, &ret->rotCacheY,
-    };
-    *retFloats[0] = (void *)ret + sizeof(KinematicsManager);
-    for (int i = 1; i < N_FLOATS; i++)
-        *retFloats[i] = (void *)(*(retFloats[i - 1])) + n * sizeof(float);
-    ret->isUpdateRot = (void *)(*(retFloats[N_FLOATS - 1])) + n * sizeof(float);
+    ret->pool = pool;
+    ret->speed = (float *)((uint8_t *)ret + sizeof(KinematicsManager));
+    ret->rot = (float *)((uint8_t *) ret->speed + n * sizeof(float));
+    ret->accel = (float *)((uint8_t *) ret->rot + n * sizeof(float));
+    ret->angularVelocity = (float *)((uint8_t *) ret->accel + n * sizeof(float));
+    ret->rotCacheX = (float *)((uint8_t *) ret->angularVelocity + n * sizeof(float));
+    ret->rotCacheY = (float *)((uint8_t *) ret->rotCacheX + n * sizeof(float));
+    ret->isUpdateRot = (uint8_t *)ret->rotCacheY + n * sizeof(float);
     if (subscribeToEventManager(pool->onSpawnEntityEvent, ret,
-        onSpawnEvent_KinematicsManager, "onSpawnEvent_KinematicsManager"))
+        (OnEventFunc)onSpawnEvent_KinematicsManager,
+        "onSpawnEvent_KinematicsManager"))
         goto error2;
     return ret;
 error2:;
@@ -69,8 +69,8 @@ updateKinematicsManager(KinematicsManager *mgr)
     size_t j;
     EntityPoolIndexList list;
 
-    list = getEntityPoolActiveIndexList(mgr->poolRef.pool);
-    for (int i = 0; i < list.n; i++) {
+    list = getEntityPoolActiveIndexList(mgr->pool);
+    for (size_t i = 0; i < list.n; i++) {
         j = list.keys[i];
         mgr->speed[j] += mgr->accel[j];
         if (mgr->angularVelocity[j]) {
@@ -83,8 +83,8 @@ updateKinematicsManager(KinematicsManager *mgr)
             mgr->rotCacheY[j] = sinf(mgr->rot[j]);
             mgr->isUpdateRot[j] = 0;
         }
-        mgr->poolRef.pool->x[j] += mgr->speed[j] * mgr->rotCacheX[j];
-        mgr->poolRef.pool->y[j] += mgr->speed[j] * mgr->rotCacheY[j];
+        mgr->pool->x[j] += mgr->speed[j] * mgr->rotCacheX[j];
+        mgr->pool->y[j] += mgr->speed[j] * mgr->rotCacheY[j];
     }
 }
 
@@ -106,7 +106,7 @@ deleteKinematicsManager(KinematicsManager *mgr)
 
 static void
 onSpawnEvent_KinematicsManager(const EntityPool *caller,
-    KinematicsManager *subscriber, const unsigned short *args)
+    KinematicsManager *subscriber, const uint16_t *args)
 {
     subscriber->isUpdateRot[*args] = 1;
 }

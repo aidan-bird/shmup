@@ -2,6 +2,7 @@
 #define ASSETS_H
 
 #include <SDL.h>
+#include <stdint.h>
 
 typedef struct AssetDef AssetDef;
 typedef struct AssetDefTab AssetDefTab;
@@ -9,7 +10,7 @@ typedef struct AssetTable AssetTable;
 typedef struct AssetLoader AssetLoader;
 typedef union AssetMetadata AssetMetadata;
 
-typedef const void* (*AssetLoaderFunc)(AssetLoader*, const char *);
+typedef void* (*AssetLoaderFunc)(AssetLoader*, const char *);
 typedef void (*AssetTabDestroyFunc)(AssetTable*);
 typedef int (*AssetTabInitFunc)(AssetTable*, size_t);
 
@@ -45,23 +46,23 @@ struct AssetTable
     AssetTabDestroyFunc destroy;
     AssetLoader loader;
     const AssetDefTab *assetDefTable;
-    const void **assets;
+    void **assets;
     AssetLoaderStatus *loaderStatus;
 };
 
 union AssetMetadata {
     struct AssetDefSprite {
-        unsigned short cellWidth;
-        unsigned short cellHeight;
-        unsigned char rows;
-        unsigned char cols;
+        uint16_t cellWidth;
+        uint16_t cellHeight;
+        uint8_t rows;
+        uint8_t cols;
     } sprite;
     struct AssetDefAnimation {
-        unsigned short cellWidth;
-        unsigned short cellHeight;
-        unsigned char rows;
-        unsigned char cols;
-        const unsigned short **delays;
+        uint16_t cellWidth;
+        uint16_t cellHeight;
+        uint8_t rows;
+        uint8_t cols;
+        const uint16_t **delays;
     } anim;
 };
 
@@ -82,21 +83,20 @@ struct AssetDefTab
 {
     const char *label;
     size_t count;
-    const int *keys;
+    const size_t *keys;
     const AssetDef *assetDefs;
 };
 
 int initSpriteAssetTable(AssetTable *tab, size_t n);
 void destroySpriteAssetTable(AssetTable *tab);
-int loadAllFromAssetDefTab(AssetTable *tab, const AssetDefTab *defTab);
+int loadAllFromAssetDefTab(AssetTable *tab, AssetDefTab *defTab);
 void
-drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey, 
-    float x, float y, unsigned char row, unsigned char col);
-const void *spriteLoaderFunc(AssetLoader *loader, const char *path);
-const void *animLoaderFunc(AssetLoader *loader, const char *path);
+drawSprite(SDL_Renderer *renderer, AssetTable *spriteTab, int assetKey, 
+    float x, float y, uint8_t row, uint8_t col);
+void *spriteLoaderFunc(AssetLoader *loader, const char *path);
 void destroyAnimAssetTable(AssetTable *tab);
-int isAssetLoaded(const AssetTable *tab, unsigned assetKey);
-AssetTable *loadSpriteSheet(const AssetDefTab *spriteSheetDef,
+int isAssetLoaded(const AssetTable *tab, uint32_t assetKey);
+AssetTable *loadSpriteSheet(AssetDefTab *spriteSheetDef,
     SDL_Renderer *renderer);
 void deleteAssetTable(AssetTable *tab);
 
