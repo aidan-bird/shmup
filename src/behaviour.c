@@ -1,25 +1,25 @@
 #include <stdlib.h>
+#include <math.h>
 
 #include "./behaviour.h"
 #include "./entity.h"
 #include "./config.h"
 #include "./content.h"
 #include "./kinematics.h"
+#include "./utils.h"
 
-typedef void (*BehaviourUpdateFunc)(EntityBehaviourManager *mgr,
-    unsigned short entityKey);
+typedef void (*BehaviourUpdateFunc)(EntityBehaviourManager *, unsigned short);
 
-static void debugbotBehaviourStart(EntityBehaviourManager *mgr,
-    unsigned short entityKey);
-static void debugbotBehaviourLoop(EntityBehaviourManager *mgr,
-    unsigned short entityKey);
-static void despawnSelfStart(EntityBehaviourManager *mgr,
-    unsigned short entityKey);
-static void simpleBulletBehaviourStart(EntityBehaviourManager *mgr,
-    unsigned short entityKey);
+static void debugbotBehaviourStart(EntityBehaviourManager *, unsigned short);
+static void debugbotBehaviourLoop(EntityBehaviourManager *, unsigned short);
+static void despawnSelfStart(EntityBehaviourManager *, unsigned short);
+static void simpleBulletBehaviourStart(EntityBehaviourManager *,
+    unsigned short);
+static void debugShotPatternStart(EntityBehaviourManager *, unsigned short);
+static void debugShotPatternLoop(EntityBehaviourManager *, unsigned short);
 
-EntityBehaviourManager *newEntityBehaviourManager(EntityPool *pool,
-    SubsystemsList *subsystems);
+EntityBehaviourManager *newEntityBehaviourManager(EntityPool *,
+    SubsystemsList *);
 
 /* 
  * XXX there could be multiple behaviour c files, each corresponding to an 
@@ -33,6 +33,8 @@ static BehaviourUpdateFunc behaviourTab[] = {
     [debugbotLoop] = debugbotBehaviourLoop,
     [despawnSelf] = despawnSelfStart,
     [simpleBulletStart] = simpleBulletBehaviourStart,
+    [debugShotPattern_Start] = debugShotPatternStart,
+    [debugShotPattern_Loop] = debugShotPatternLoop,
 };
 
 /*
@@ -161,6 +163,31 @@ deleteEntityBehaviourManager(EntityBehaviourManager *mgr)
     free(mgr);
 }
 
+/*
+ * REQUIRES
+ * mgr is a pointer to a valid Behaviour Manager.
+ *
+ * MODIFIES
+ * mgr
+ *
+ * EFFECTS
+ * updates mgr
+ */
+void
+updateEntityBehaviourManager(EntityBehaviourManager *mgr)
+{
+    size_t j;
+
+    for (int i = 0; i < *mgr->poolRef.activeCount; i++) {
+        j = mgr->poolRef.activeIndexMap[i];
+        mgr->ticksAlive[j]++;
+        if (mgr->behaviourKey[j] == no_behaviour)
+            continue;
+        behaviourTab[mgr->behaviourKey[j]](mgr, j);
+    }
+}
+
+/* XXX sample code that demonstrates the behaviour system */
 static void
 debugbotBehaviourStart(EntityBehaviourManager *mgr, unsigned short entityKey)
 {
@@ -175,6 +202,7 @@ debugbotBehaviourStart(EntityBehaviourManager *mgr, unsigned short entityKey)
     setAnimation(mgr->subsystems.debug.animator, entityKey, debuganim, 0, 0);
     /* TODO set events e.g., onCollideEvent */
     /* start looping behaviour */
+    raiseIsInitializedFlag(mgr->poolRef.pool, entityKey);
     setBehaviour(mgr, NULL, debugbotLoop, entityKey);
 }
 
@@ -210,7 +238,7 @@ static void
 simpleBulletBehaviourStart(EntityBehaviourManager *mgr,
     unsigned short entityKey)
 {
-    struct SimpleBulletBehaviourArgs *args;
+    const struct SimpleBulletBehaviourArgs *args;
     KinematicsManager *kinMgr;
 
     args = mgr->args + entityKey;
@@ -224,30 +252,81 @@ simpleBulletBehaviourStart(EntityBehaviourManager *mgr,
     kinMgr->angularVelocity[entityKey] = 0;
     setAnimation(mgr->subsystems.debug.animator, entityKey, args->animKey, 0,
         0);
+    raiseIsInitializedFlag(mgr->poolRef.pool, entityKey);
     setBehaviour(mgr, NULL, no_behaviour, entityKey);
 }
 
 /*
- * REQUIRES
- * mgr is a pointer to a valid Behaviour Manager.
+ * XXX testing an enemy entity
  *
- * MODIFIES
- * mgr
- *
- * EFFECTS
- * updates mgr
+ * this entity will be spawned by the stage system after a specified delay 
+ * from starting the game. The entity will attack the player by spawning
+ * the following bullet pattern. Should the entity live and expend all of its
+ * ammo, it shall exit the stage by accelerating to either the left or right of
+ * the stage until it goes past the boundaries of the game. then it will 
+ * de-spawn itself.
  */
-void
-updateEntityBehaviourManager(EntityBehaviourManager *mgr)
+static void
+debugShotPatternStart(EntityBehaviourManager *mgr, unsigned short entityKey)
 {
-    size_t j;
+    const struct DebugShotPattern *args;
+    struct DebugShotPatternState *state;
+    float shotAngleOffset = PI_F / 12;
+    float baseShotAngle;
 
-    for (int i = 0; i < *mgr->poolRef.activeCount; i++) {
-        j = mgr->poolRef.activeIndexMap[i];
-        mgr->ticksAlive[j]++;
-        if (mgr->behaviourKey[j] == no_behaviour)
-            continue;
-        behaviourTab[mgr->behaviourKey[j]](mgr, j);
-    }
+    state = mgr->state + entityKey;
+    args = mgr->args + entityKey;
+    baseShotAngle = atan2f(args->shooterPool->x[args->shooterKey] 
+        - args->targetPool->x[args->targetKey],
+        args->shooterPool->y[args->shooterKey] 
+        - args->targetPool->y[args->targetKey]) - shotAngleOffset;
+    for (int i = 0; i < LEN(state->shotAngles); i++)
+        state->shotAngles[i] = baseShotAngle + i * shotAngleOffset;
+    state->burstsRemaining = 3;
+    state->currentDelay = 0;
+    setBehaviour(mgr, NULL, debugShotPattern_Loop, entityKey);
 }
+
+static void
+debugShotPatternLoop(EntityBehaviourManager *mgr, unsigned short entityKey)
+{
+    BehaviourArgs spawnArgs;
+    const struct DebugShotPattern *args;
+    struct DebugShotPatternState *state;
+    unsigned short key;
+
+    state = mgr->state + entityKey;
+    if (!state->burstsRemaining)
+        setBehaviour(mgr, NULL, despawnSelf, entityKey);
+    if (state->currentDelay) {
+        state->currentDelay--;
+        return;
+    }
+    args = mgr->args + entityKey;
+    spawnArgs = (BehaviourArgs) {
+        .simpleBullet = {
+            .startX = args->shooterPool->x[args->shooterKey],
+            .startY = args->shooterPool->y[args->shooterKey],
+            .speed = 5,
+            .radius = 32,
+            .animKey = args->animKey,
+        },
+    };
+    for (int i = 0; i < LEN(state->shotAngles); i++) {
+        spawnArgs.simpleBullet.rot = state->shotAngles[i];
+        key = spawnEntity(args->ammoPoolBeh->poolRef.pool);
+        setBehaviour(args->ammoPoolBeh, &spawnArgs, simpleBulletStart, key);
+    }
+    state->burstsRemaining--;
+    state->currentDelay = args->delayBetweenShots;
+}
+
+/* 
+ * XXX testing bullet pattern spawning
+ *
+ * THE PATTERN
+ * shoot 3 bullets at once, one is aimed at a target, the other two are aimed 
+ * but offset by 15 degrees, to this three times with each burst delayed by
+ * 0.5 seconds (30 ticks in-between bursts at 60 TPS)
+ */
 

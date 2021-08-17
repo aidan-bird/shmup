@@ -1,22 +1,30 @@
 #ifndef COLLISION_H
 #define COLLISION_H
 
-#include <SDL.h>
+typedef struct ColliderDef ColliderDef;
+typedef enum ColliderDefType ColliderDefType;
 
-#include "./entity.h"
-
-typedef struct CircleCollider CircleCollider;
-
-struct CircleCollider
+enum ColliderDefType
 {
-    EntityPoolRef poolRef;
-    unsigned char *radius;
+    circle,
+    box,
 };
 
-CircleCollider *newCircCollider(const EntityPool *pool);
-void deleteCircCollider(CircleCollider *collider);
-short testCircCollider(float x, float y, float r, 
-    const CircleCollider *collider);
-void drawCircCollider(SDL_Renderer *renderer, const CircleCollider *collider);
+struct ColliderDef
+{
+    ColliderDefType type;
+    union ColliderArgs {
+        struct BoxColliderArgs {
+            unsigned char width;
+            unsigned char height;
+        } box;
+        struct CircleColliderArgs {
+            unsigned char radius;
+        } circle;
+    } args;
+};
+
+int setCollider(void *collider, const ColliderDef *def,
+    unsigned short entityKey);
 
 #endif

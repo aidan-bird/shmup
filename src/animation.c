@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <SDL.h>
+#include <stdint.h>
 
 #include "./entity.h"
 #include "./assets.h"
@@ -56,10 +57,10 @@ newAnimator(const EntityPool *pool, const AssetTable *assetTab)
     ret->assetTab = assetTab;
     ret->poolRef = getEntityPoolRef(pool);
     /* XXX void pointer arithmetic is not portable */
-    ret->animKeys = (void *)ret + sizeof(Animator);
-    ret->frames = (void *)ret->animKeys + sizeof(unsigned char) * n;
-    ret->selectors = (void *)ret->frames + sizeof(unsigned char) * n;
-    ret->delays = (void *)ret->selectors + sizeof(unsigned char) * n;
+    ret->animKeys = (uint8_t *)ret + sizeof(Animator);
+    ret->frames = (uint8_t *)ret->animKeys + sizeof(unsigned char) * n;
+    ret->selectors = (uint8_t *)ret->frames + sizeof(unsigned char) * n;
+    ret->delays = (uint8_t *)ret->selectors + sizeof(unsigned char) * n;
     return ret;
 }
 
@@ -121,9 +122,9 @@ void
 drawAnimator(SDL_Renderer *renderer, const Animator *animator)
 {
     size_t j;
-    EntityPoolActiveIndexList list;
+    EntityPoolIndexList list;
 
-    list = getEntityPoolActiveIndexList(animator->poolRef.pool);
+    list = getEntityPoolIsInitializedIndexList(animator->poolRef.pool);
     for (int i = 0; i < list.n; i++) {
         j = list.keys[i];
         drawSprite(renderer, animator->assetTab, animator->animKeys[j],

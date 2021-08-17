@@ -8,7 +8,6 @@ typedef struct AssetDefTab AssetDefTab;
 typedef struct AssetTable AssetTable;
 typedef struct AssetLoader AssetLoader;
 typedef union AssetMetadata AssetMetadata;
-typedef enum AssetLoaderStatus AssetLoaderStatus;
 
 typedef const void* (*AssetLoaderFunc)(AssetLoader*, const char *);
 typedef void (*AssetTabDestroyFunc)(AssetTable*);
@@ -21,6 +20,8 @@ enum AssetLoaderStatus
     invalid = 2,
 };
 
+typedef enum AssetLoaderStatus AssetLoaderStatus;
+
 struct AssetLoader
 {
     AssetLoaderFunc load;
@@ -32,7 +33,7 @@ struct AssetLoader
         struct AssetLoaderAnimation {
             SDL_Renderer *renderer;
         } anim;
-    };
+    } args;
 };
 
 /*

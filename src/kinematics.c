@@ -67,7 +67,7 @@ void
 updateKinematicsManager(KinematicsManager *mgr)
 {
     size_t j;
-    EntityPoolActiveIndexList list;
+    EntityPoolIndexList list;
 
     list = getEntityPoolActiveIndexList(mgr->poolRef.pool);
     for (int i = 0; i < list.n; i++) {

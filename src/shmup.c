@@ -67,6 +67,10 @@ static CircleCollider *testCollider;
 static EventManager *onCollisionTestEvent;
 static KinematicsManager *testKinematics;
 
+/* XXX testing the bullet pattern system (behaviour system) */
+static EntityPool *shotPatternTestPool;
+static EntityBehaviourManager *shotBeh;
+
 /*
  * REQUIRES
  * events are handled before calling this.
@@ -105,7 +109,15 @@ updateGame()
     /* update entity pools */
     /* XXX not needed */
     updateEntityPool(&playerBullets);
+
+    /* XXX testing shot patterns */
+    updateEntityPool(shotPatternTestPool);
+
     updateEntityBehaviourManager(testBeh);
+
+    updateEntityBehaviourManager(shotBeh);
+
+
     updateKinematicsManager(testKinematics);
     /* XXX testing the collision detection system + the event system */
     colliderKey = testCircCollider(playerX, playerY, 32, testCollider);
@@ -321,9 +333,11 @@ main(int argc, char **argv)
 
     testBeh = newDebugEntityBehaviourManager(&playerBullets, testAnimator,
         testCollider, testKinematics);
+
     /* XXX spawn a test entity */
+    unsigned short key1;
+    unsigned short key2;
     {
-        unsigned short key;
         BehaviourArgs tmp;
 
         tmp = (BehaviourArgs) {
@@ -331,14 +345,42 @@ main(int argc, char **argv)
                 .startX = WIDTH / 2,
                 .startY = HEIGHT / 2,
                 .rot = PI_F / 2,
-                .speed = 5,
+                .speed = 0,
                 .radius = 32,
                 .animKey = debuganim,
             },
         };
-        key = spawnEntity(&playerBullets);
-        setBehaviour(testBeh, &tmp, simpleBulletStart, key);
+        key1 = spawnEntity(&playerBullets);
+        setBehaviour(testBeh, &tmp, simpleBulletStart, key1);
+        tmp.simpleBullet.startX += 256;
+        tmp.simpleBullet.startY += 256;
+        key2 = spawnEntity(&playerBullets);
+        setBehaviour(testBeh, &tmp, simpleBulletStart, key2);
     }
+    shotPatternTestPool = newEntityPool(10);
+    addOnSpawnEntityEventManager(shotPatternTestPool);
+    shotBeh = newDebugEntityBehaviourManager(shotPatternTestPool, testAnimator,
+        testCollider, testKinematics);
+    /* XXX test spawning a shot pattern */
+    {
+        unsigned short key;
+        BehaviourArgs tmp;
+
+        tmp = (BehaviourArgs) {
+            .debugShotPattern = {
+                .animKey = debuganim,
+                .targetKey = key1,
+                .shooterKey = key2,
+                .targetPool = &playerBullets,
+                .shooterPool = &playerBullets,
+                .ammoPoolBeh = testBeh,
+                .delayBetweenShots = 30,
+            },
+        };
+        key = spawnEntity(shotPatternTestPool);
+        setBehaviour(shotBeh, &tmp, debugShotPattern_Start, key);
+    }
+
     onCollisionTestEvent = newEventManager(NULL, "onCollisionTestEvent");
     subscribeToEventManager(onCollisionTestEvent, testBeh,
             onCollisionTestEvent_EntityBehaviourManager,
@@ -352,6 +394,11 @@ main(int argc, char **argv)
     playerSprite = debugred;
     gameLoop();
     /* cleanup */
+
+    /* XXX */
+    deleteEntityPool(shotPatternTestPool);
+    // shotPatternTestPool = NULL;
+    deleteEntityBehaviourManager(shotBeh);
 
     /* XXX */
     deleteKinematicsManager(testKinematics);

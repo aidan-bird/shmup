@@ -10,14 +10,25 @@ EntityPool enemyBullets = newDebugEntityPool(POOL_SIZE);
 EntityPool enemies = newDebugEntityPool(POOL_SIZE);
 EntityPool pickups = newDebugEntityPool(POOL_SIZE);
 
+/*
+ * REQUIRES
+ * none
+ *
+ * MODIFIES
+ * none
+ *
+ * EFFECTS
+ * creates a new pool on the heap.
+ * returns NULL on error.
+ */
 EntityPool *
 newEntityPool(size_t n)
 {
     size_t vectorSize;
     EntityPool *ret;
     
-    vectorSize = sizeof(EntityPool) + n * (sizeof(char) 
-        + sizeof(unsigned short) + sizeof(unsigned) + 2 * sizeof(float));
+    vectorSize = sizeof(EntityPool) + n * (2 * sizeof(char) 
+        + 2 * sizeof(unsigned short) + sizeof(unsigned) + 2 * sizeof(float));
     ret = malloc(vectorSize);
     if (!ret)
         goto error1;
@@ -29,10 +40,32 @@ newEntityPool(size_t n)
     ret->flags = (void *)ret->activeIndexMap + n * sizeof(unsigned short);
     ret->x = (void *)ret->flags + n * sizeof(unsigned);
     ret->y = (void *)ret->x + n * sizeof(float);
+    ret->isInitialized = (void *)ret->y + n * sizeof(float);
+    ret->isInitializedIndexMap = (void *)ret->isInitialized + n * sizeof(char);
     ret->onSpawnEntityEvent = NULL;
     return ret;
 error1:;
     return NULL;
+}
+
+/*
+ * REQUIRES
+ * pool was created using newEntityPool()
+ *
+ * MODIFIES
+ * pool
+ *
+ * EFFECTS
+ * deletes pool and any associated event managers if they were registered
+ */
+void
+deleteEntityPool(EntityPool *pool)
+{
+    if (!pool)
+        return;
+    if (pool->onSpawnEntityEvent)
+        deleteEventManager(pool->onSpawnEntityEvent);
+    free(pool);
 }
 
 /*
@@ -132,6 +165,8 @@ spawnEntity(EntityPool *pool)
 
     ret = pool->next;
     pool->isActive[ret] = 1;
+    pool->isInitialized[ret] = 0;
+    pool->isInitializedIndexMapDirty = 1;
     pool->isActiveIndexMapDirty = 1;
     if (pool->next + 1 < pool->count) {
         pool->next++;
@@ -199,30 +234,57 @@ updateEntityPool(EntityPool *pool)
     /* update behavior */
 }
 
+EntityPoolIndexList
+getEntityPoolActiveIndexList(EntityPool *pool)
+{
+    updateActiveIndexMap(pool);
+    return (EntityPoolIndexList) {
+        .n = pool->activeCount,
+        .keys = pool->activeIndexMap,
+    };
+}
+
 /*
  * REQUIRES
- * pool is valid
+ * none
  *
  * MODIFIES
  * pool
  *
  * EFFECTS
- * invalidates pool.
+ * calls updateActiveIndexMap(), and then updates the isInitializedIndexMap
  */
-void
-invalidateEntityPool(EntityPool *pool)
+size_t
+updateIsInitializedIndexMap(EntityPool *pool)
 {
-    /* TODO associated subsystems could be freed here */
-    deleteEventManager(pool->onSpawnEntityEvent);
+    size_t j;
+    size_t k;
+
+    if (!pool->isInitializedIndexMapDirty)
+        return pool->isInitializedCount;
+    updateActiveIndexMap(pool);
+    k = 0;
+    for (size_t i = 0; i < pool->activeCount; i++) {
+        j = pool->activeIndexMap[i];
+        if (pool->isInitialized[j]) {
+            pool->isInitializedIndexMap[k] = j;
+            k++;
+        }
+    }
+    pool->isInitializedCount = k;
+    pool->isInitializedIndexMapDirty = 0;
+    return k;
 }
 
-EntityPoolActiveIndexList
-getEntityPoolActiveIndexList(EntityPool *pool)
+EntityPoolIndexList
+getEntityPoolIsInitializedIndexList(EntityPool *pool)
 {
-    updateActiveIndexMap(pool);
-    return (EntityPoolActiveIndexList) {
-        .n = pool->activeCount,
-        .keys = pool->activeIndexMap,
+    size_t n;
+
+    n = updateIsInitializedIndexMap(pool);
+    return (EntityPoolIndexList) {
+        .n = n,
+        .keys = pool->isInitializedIndexMap,
     };
 }
 

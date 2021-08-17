@@ -3,6 +3,7 @@
 
 #include "./entity.h"
 #include "./collision.h"
+#include "./circle_collision.h"
 #include "./box_collision.h"
 #include "./animation.h"
 #include "./content.h"
@@ -19,6 +20,11 @@ union BehaviourState
     struct DebugbotState {
         int i;
     } debugbot;
+    struct DebugShotPatternState {
+        float shotAngles[3];
+        unsigned char burstsRemaining;
+        unsigned char currentDelay;
+    } debugShotPattern;
 };
 
 /* XXX determine where this should be defined */
@@ -56,6 +62,15 @@ union BehaviourArgs
         unsigned char radius;
         AnimAssetKeys animKey;
     } simpleBullet;
+    struct DebugShotPattern {
+        unsigned char delayBetweenShots;
+        AnimAssetKeys animKey;
+        unsigned short targetKey;
+        const EntityPool *targetPool;
+        unsigned short shooterKey;
+        const EntityPool *shooterPool;
+        EntityBehaviourManager *ammoPoolBeh;
+    } debugShotPattern;
 };
 
 struct EntityBehaviourManager
@@ -76,6 +91,8 @@ enum BehaviourKey
     debugbotStart,
     debugbotLoop,
     simpleBulletStart,
+    debugShotPattern_Start,
+    debugShotPattern_Loop,
 };
 
 void onSpawnEvent_EntityBehaviourManager(EntityPool *caller, 

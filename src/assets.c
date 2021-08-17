@@ -185,7 +185,7 @@ destroySpriteAssetTable(AssetTable *tab)
 const void*
 spriteLoaderFunc(AssetLoader *loader, const char *path)
 {
-    return (const void *)loadImage(loader->sprite.renderer, path);
+    return (const void *)loadImage(loader->args.sprite.renderer, path);
 }
 
 /*
@@ -212,8 +212,8 @@ drawSprite(SDL_Renderer *renderer, const AssetTable *spriteTab, int assetKey,
      * draw calls.
      * otherwise it is possible for draw calls to occurs on invalid keys
      */
-    //if (!isAssetLoaded(spriteTab, assetKey))
-    //    return;
+    if (!isAssetLoaded(spriteTab, assetKey))
+        return;
     spriteWidth = spriteTab->assetDefTable->assetDefs[assetKey].meta.sprite
         .cellWidth;
     spriteHeight = spriteTab->assetDefTable->assetDefs[assetKey].meta.sprite
@@ -256,7 +256,7 @@ loadSpriteSheet(const AssetDefTab *spriteSheetDef, SDL_Renderer *renderer)
         .destroy = destroySpriteAssetTable,
             .loader = (AssetLoader) {
                 .load = spriteLoaderFunc,
-                .sprite = {
+                .args.sprite = {
                     .renderer = renderer,
                 },
             }

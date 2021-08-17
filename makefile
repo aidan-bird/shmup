@@ -10,7 +10,7 @@ ALIB_OBJ=$(patsubst $(ALIB_SRC_PATH)/%,$(OBJ_PATH)/%,$(ALIB_SRC:.c=.o))
 INC= -I/usr/include/SDL2 -lm
 
 LDFLAGS = -D_REENTRANT -L/usr/lib -lSDL2 -lSDL2_image -lm 
-CFLAGS = -ggdb3 -O0 -Wall -fstrict-aliasing -std=c99
+CFLAGS = -ggdb3 -O0 -Wall -Wextra -pedantic-errors -fstrict-aliasing -std=c99
 
 all: debug
 

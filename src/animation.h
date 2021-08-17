@@ -9,8 +9,6 @@
 typedef struct AnimDef AnimDef;
 typedef struct Animator Animator;
 
-typedef enum AnimationKey AnimationKey;
-
 Animator *newAnimator(const EntityPool *pool, const AssetTable *assetTab);
 void deleteAnimator(Animator *animator);
 void updateAnimator(Animator *animator);

@@ -6,25 +6,45 @@
 #include "./assets.h"
 #include "./event.h"
 
+#define raiseIsInitializedFlag(POOL_PTR, KEY) \
+    ((EntityPool*)POOL_PTR)->isInitialized[(KEY)] = 1; \
+    ((EntityPool*)POOL_PTR)->isInitializedIndexMapDirty = 1;
+
+/*
+ * TODO
+ *
+ * create a bullet pool with only one type of entity.
+ */
+
+/*
+ * IDEA
+ *
+ * let x,y of all pools refer to a contiguous global array.
+ */
+
 /* use this to define a new EntityPool */
 #define newDebugEntityPool(SIZE) \
 (EntityPool) { \
     .next = 0, \
     .activeCount = 0, \
+    .isInitializedIndexMapDirty = 0, \
+    .isInitializedCount = 0, \
     .count = (SIZE), \
     .isActive = (char[(SIZE)]){}, \
     .activeIndexMap = (unsigned short[(SIZE)]){}, \
     .flags = (unsigned[(SIZE)]){}, \
     .x = (float[(SIZE)]){}, \
     .y = (float[(SIZE)]){}, \
+    .isInitialized = (char[(SIZE)]){}, \
+    .isInitializedIndexMap = (unsigned short[(SIZE)]){}, \
     .onSpawnEntityEvent = NULL, \
 };
 
 typedef struct EntityPool EntityPool;
 typedef struct EntityPoolRef EntityPoolRef;
-typedef struct EntityPoolActiveIndexList EntityPoolActiveIndexList;
+typedef struct EntityPoolIndexList EntityPoolIndexList;
 
-struct EntityPoolActiveIndexList
+struct EntityPoolIndexList
 {
     size_t n;
     const unsigned short *keys;
@@ -37,7 +57,10 @@ void updateEntityPosition(EntityPool *pool);
 void despawnEntity(EntityPool *pool, unsigned short key);
 void invalidateEntityPool(EntityPool *pool);
 unsigned short spawnEntity(EntityPool *pool);
-EntityPoolActiveIndexList getEntityPoolActiveIndexList(EntityPool *pool);
+EntityPoolIndexList getEntityPoolActiveIndexList(EntityPool *pool);
+EntityPool *newEntityPool(size_t n);
+size_t updateIsInitializedIndexMap(EntityPool *pool);
+EntityPoolIndexList getEntityPoolIsInitializedIndexList(EntityPool *pool);
 
 /*
  * Represents a fixed-length pool of objects.
@@ -51,6 +74,8 @@ struct EntityPool
     size_t next;
     size_t activeCount;
     size_t count;
+    char isInitializedIndexMapDirty;
+    size_t isInitializedCount;
     char *isActive;
     unsigned short *activeIndexMap;
     unsigned *flags;
@@ -58,6 +83,8 @@ struct EntityPool
     float *y;
     EventManager *onSpawnEntityEvent;
     char isActiveIndexMapDirty;
+    char *isInitialized;
+    unsigned short *isInitializedIndexMap;
 };
 
 /* 

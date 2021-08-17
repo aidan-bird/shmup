@@ -38,7 +38,7 @@ testBoxCollider(float x, float y, unsigned width, unsigned height,
     float y2;
     float width2;
     float height2;
-    EntityPoolActiveIndexList list;
+    EntityPoolIndexList list;
 
     list = getEntityPoolActiveIndexList(collider->poolRef.pool);
     for (int i = 0; i < list.n; i++) {
@@ -60,7 +60,7 @@ drawBoxCollider(SDL_Renderer *renderer, const BoxCollider *collider)
 {
     SDL_Rect rect;
     size_t j;
-    EntityPoolActiveIndexList list;
+    EntityPoolIndexList list;
 
     list = getEntityPoolActiveIndexList(collider->poolRef.pool);
     for (int i = 0; i < list.n; i++) {
