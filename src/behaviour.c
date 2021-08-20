@@ -19,6 +19,10 @@ static void simpleBulletBehaviourStart(EntityBehaviourManager *,
 static void debugShotPatternStart(EntityBehaviourManager *, uint16_t);
 static void debugShotPatternLoop(EntityBehaviourManager *, uint16_t);
 
+/*
+ * XXX store the pointer instead of a key
+ */
+
 /* 
  * XXX there could be multiple behaviour c files, each corresponding to an 
  * entity type
@@ -37,14 +41,15 @@ static BehaviourUpdateFunc behaviourTab[] = {
 
 /*
  * REQUIRES
- * none
+ * all parameters are valid.
  *
  * MODIFIES
  * mgr
  *
  * EFFECTS
  * sets the behaviour of an entity.
- * args is optional
+ * the behaviour will start on the next tick.
+ * args is optional.
  */
 void
 setBehaviour(EntityBehaviourManager *mgr, const BehaviourArgs *args, 
@@ -54,6 +59,31 @@ setBehaviour(EntityBehaviourManager *mgr, const BehaviourArgs *args,
     mgr->ticksDelta[entityKey] = 0;
     if (args)
         mgr->args[entityKey] = *args;
+}
+
+/*
+ * REQUIRES
+ * all parameters are valid.
+ *
+ * MODIFIES
+ * mgr
+ *
+ * EFFECTS
+ * sets the behaviour of an entity.
+ * the behaviour will start when this is called.
+ * args is optional.
+ */
+void
+jumpBehaviour(EntityBehaviourManager *mgr, const BehaviourArgs *args, 
+    BehaviourKey behaviourKey, uint16_t entityKey)
+{
+    mgr->behaviourKey[entityKey] = behaviourKey;
+    mgr->ticksDelta[entityKey] = 0;
+    if (args)
+        mgr->args[entityKey] = *args;
+    if (behaviourKey == no_behaviour)
+        return;
+    behaviourTab[behaviourKey](mgr, entityKey);
 }
 
 /*
@@ -198,23 +228,16 @@ updateEntityBehaviourManager(EntityBehaviourManager *mgr)
 static void
 debugbotBehaviourStart(EntityBehaviourManager *mgr, uint16_t entityKey)
 {
-    /* setup behaviour state */
     mgr->state[entityKey].debugbot.i = 0;
-    /* set position */
     mgr->pool->x[entityKey] = WIDTH / 2;
     mgr->pool->y[entityKey] = HEIGHT / 2;
-    /* set collider */
     mgr->subsystems.debug.collider->radius[entityKey] = 32;
-    /* set graphics/sprite */
     setAnimation(mgr->subsystems.debug.animator, entityKey, debuganim, 0, 0);
-    /* TODO set events e.g., onCollideEvent */
-    /* start looping behaviour */
     raiseIsInitializedFlag(mgr->pool, entityKey);
-    setBehaviour(mgr, NULL, debugbotLoop, entityKey);
+    jumpBehaviour(mgr, NULL, debugbotLoop, entityKey);
 }
 
 /* XXX sample code that demonstrates the behaviour system */
-/* XXX used for testing */
 static void
 debugbotBehaviourLoop(EntityBehaviourManager *mgr, uint16_t entityKey)
 {
@@ -225,7 +248,6 @@ debugbotBehaviourLoop(EntityBehaviourManager *mgr, uint16_t entityKey)
         setBehaviour(mgr, NULL, despawnSelf, entityKey);
 }
 
-/* XXX used for testing */
 static void
 despawnSelfStart(EntityBehaviourManager *mgr, uint16_t entityKey)
 {
@@ -260,19 +282,10 @@ simpleBulletBehaviourStart(EntityBehaviourManager *mgr,
     setAnimation(mgr->subsystems.debug.animator, entityKey, args->animKey, 0,
         0);
     raiseIsInitializedFlag(mgr->pool, entityKey);
-    setBehaviour(mgr, NULL, no_behaviour, entityKey);
+    jumpBehaviour(mgr, NULL, no_behaviour, entityKey);
 }
 
-/*
- * XXX testing an enemy entity
- *
- * this entity will be spawned by the stage system after a specified delay 
- * from starting the game. The entity will attack the player by spawning
- * the following bullet pattern. Should the entity live and expend all of its
- * ammo, it shall exit the stage by accelerating to either the left or right of
- * the stage until it goes past the boundaries of the game. then it will 
- * de-spawn itself.
- */
+/* XXX shot pattern used for testing */
 static void
 debugShotPatternStart(EntityBehaviourManager *mgr, uint16_t entityKey)
 {
@@ -291,7 +304,7 @@ debugShotPatternStart(EntityBehaviourManager *mgr, uint16_t entityKey)
         state->shotAngles[i] = baseShotAngle + i * shotAngleOffset;
     state->burstsRemaining = 3;
     state->currentDelay = 0;
-    setBehaviour(mgr, NULL, debugShotPattern_Loop, entityKey);
+    jumpBehaviour(mgr, NULL, debugShotPattern_Loop, entityKey);
 }
 
 static void
@@ -328,12 +341,24 @@ debugShotPatternLoop(EntityBehaviourManager *mgr, uint16_t entityKey)
     state->currentDelay = args->delayBetweenShots;
 }
 
-/* 
- * XXX testing bullet pattern spawning
+/* XXX enemy bot for testing */
+/*
+ * XXX testing an enemy entity
  *
- * THE PATTERN
- * shoot 3 bullets at once, one is aimed at a target, the other two are aimed 
- * but offset by 15 degrees, to this three times with each burst delayed by
- * 0.5 seconds (30 ticks in-between bursts at 60 TPS)
+ * this entity will be spawned by the stage system after a specified delay 
+ * from starting the game. The entity will attack the player by spawning
+ * the following bullet pattern. Should the entity live and expend all of its
+ * ammo, it shall exit the stage by accelerating to either the left or right of
+ * the stage until it goes past the boundaries of the game. then it will 
+ * de-spawn itself.
  */
+static void
+enemyBotTestStart(EntityBehaviourManager *mgr, uint16_t entityKey)
+{
+}
+
+static void
+enemyBotTestLoop(EntityBehaviourManager *mgr, uint16_t entityKey)
+{
+}
 

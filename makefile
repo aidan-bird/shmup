@@ -1,3 +1,6 @@
+CC=gcc
+# CC=distcc
+
 SRC_PATH=src
 OBJ_PATH=.obj
 SRC=$(wildcard $(SRC_PATH)/*.c)
@@ -9,7 +12,7 @@ ALIB_OBJ=$(patsubst $(ALIB_SRC_PATH)/%,$(OBJ_PATH)/%,$(ALIB_SRC:.c=.o))
 
 INC= -I/usr/include/SDL2 -lm
 
-LDFLAGS = -D_REENTRANT -L/usr/lib -lSDL2 -lSDL2_image -lm 
+LDFLAGS = -D_REENTRANT -L/usr/lib -lSDL2 -lSDL2_image -lgsl -lgslcblas -lm
 CFLAGS = -ggdb3 -O0 -Wall -Wextra -pedantic-errors -fstrict-aliasing -std=c99
 
 all: debug

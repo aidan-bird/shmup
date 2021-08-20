@@ -15,18 +15,6 @@ typedef union BehaviourArgs BehaviourArgs;
 typedef union BehaviourState BehaviourState;
 typedef union SubsystemsList SubsystemsList;
 
-union BehaviourState
-{
-    struct DebugbotState {
-        int i;
-    } debugbot;
-    struct DebugShotPatternState {
-        float shotAngles[3];
-        uint8_t burstsRemaining;
-        uint8_t currentDelay;
-    } debugShotPattern;
-};
-
 /* XXX determine where this should be defined */
 union SubsystemsList
 {
@@ -52,6 +40,18 @@ union SubsystemsList
     } enemy;
 };
 
+union BehaviourState
+{
+    struct DebugbotState {
+        int i;
+    } debugbot;
+    struct DebugShotPatternState {
+        float shotAngles[3];
+        uint8_t burstsRemaining;
+        uint8_t currentDelay;
+    } debugShotPattern;
+};
+
 union BehaviourArgs
 {
     struct SimpleBulletBehaviourArgs {
@@ -71,6 +71,11 @@ union BehaviourArgs
         const EntityPool *shooterPool;
         EntityBehaviourManager *ammoPoolBeh;
     } debugShotPattern;
+    struct EnemyBotTest {
+        struct DebugShotPattern shotArgs;
+        AnimAssetKeys animKey;
+        float startX;
+    } enemyBotTest;
 };
 
 struct EntityBehaviourManager
@@ -111,5 +116,7 @@ void setBehaviour(EntityBehaviourManager *mgr, const BehaviourArgs *args,
     BehaviourKey behaviourKey, uint16_t entityKey);
 EntityBehaviourManager *newEntityBehaviourManager(EntityPool *,
     SubsystemsList *);
+void jumpBehaviour(EntityBehaviourManager *mgr, const BehaviourArgs *args, 
+    BehaviourKey behaviourKey, uint16_t entityKey);
 
 #endif

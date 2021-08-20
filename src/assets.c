@@ -221,8 +221,8 @@ drawSprite(SDL_Renderer *renderer, AssetTable *spriteTab, int assetKey,
      * draw calls.
      * otherwise it is possible for draw calls to occurs on invalid keys
      */
-    if (!isAssetLoaded(spriteTab, assetKey))
-        return;
+    // if (!isAssetLoaded(spriteTab, assetKey))
+    //     return;
     spriteWidth = spriteTab->assetDefTable->assetDefs[assetKey].meta.sprite
         .cellWidth;
     spriteHeight = spriteTab->assetDefTable->assetDefs[assetKey].meta.sprite
